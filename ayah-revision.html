@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Ayah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Poppins:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body { background:#03060f; }
+  @media (prefers-reduced-motion: reduce) { * { animation-duration:.001ms !important; animation-iteration-count:1 !important; } }
+  @keyframes ayahGlowPulse { 0%,100% { opacity:.5; transform:translate(-50%,-50%) scale(1);} 50% { opacity:.82; transform:translate(-50%,-50%) scale(1.08);} }
+  @keyframes ayahShimmer { 0% { background-position:-160% 0;} 100% { background-position:260% 0;} }
+  @keyframes ayahDeco { 0%,100% { transform:translateY(0) rotate(var(--r,0deg)); } 50% { transform:translateY(-9px) rotate(var(--r,0deg)); } }
+  @keyframes ayFade { from { opacity:0; transform:translateY(12px);} to { opacity:1; transform:none;} }
+  @keyframes ayPulse { 0%,100%{opacity:.3} 50%{opacity:.8} }
+  @keyframes ayShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 60%{transform:translateX(7px)} 80%{transform:translateX(-3px)} }
+  @keyframes ayWordGlow { 0%,100%{text-shadow:0 0 28px rgba(232,201,138,.6),0 0 60px rgba(232,201,138,.2)} 50%{text-shadow:0 0 52px rgba(232,201,138,1),0 0 120px rgba(232,201,138,.45)} }
+  .ay-scroll::-webkit-scrollbar { width:0; }
+  .ay-fade { animation: ayFade .42s cubic-bezier(.16,1,.3,1) both; }
+  .ay-cta { width:100%; font-family:'Cormorant Garamond',serif; font-size:19px; font-weight:600; letter-spacing:.02em; padding:15px; border:1px solid #b9913f; border-radius:12px; cursor:pointer; color:#1a1206; background:linear-gradient(180deg,#fbeeb8,#d8b45c 55%,#c79b40); box-shadow:0 8px 24px rgba(216,180,92,.28); position:relative; overflow:hidden; transition:transform .12s; }
+  .ay-cta:active { transform:scale(.98); }
+  .ay-cta .sh { position:absolute; inset:0; background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.6) 50%,transparent 70%); background-size:220% 100%; animation:ayahShimmer 3.6s ease-in-out infinite; }
+  .ay-ghost { width:100%; font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:500; padding:14px; border:1px solid rgba(216,180,92,.55); border-radius:12px; cursor:pointer; color:#eccb73; background:rgba(8,16,42,.35); transition:transform .12s,background .2s; }
+  .ay-ghost:active { transform:scale(.98); }
+  .ay-ghost:hover { background:rgba(216,180,92,.1); }
+  .spk { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; border:1px solid rgba(216,180,92,.4); background:rgba(216,180,92,.08); cursor:pointer; vertical-align:middle; transition:transform .12s,background .2s; }
+  .spk:active { transform:scale(.9); }
+  .spk.playing { background:rgba(216,180,92,.25); animation:ayPulse 1s ease-in-out infinite; }
+  .wordhi { color:#fbeeb8; text-shadow:0 0 22px rgba(231,194,108,.85); border-bottom:2px solid rgba(231,194,108,.5); }
+</style>
+</head>
+<body>
+<div id="root" style="display:flex; justify-content:center; align-items:flex-start; min-height:100vh; background:#03060f; font-family:'Cormorant Garamond', serif;">
+  <div class="ay-card" style="position:relative; width:100%; max-width:430px; min-height:812px; height:100dvh; max-height:880px; overflow:hidden; background:radial-gradient(135% 70% at 50% -8%, #1d3068 0%, #122150 34%, #0a1538 60%, #060e29 82%, #04091f 100%); color:#f3e9cf; display:flex; flex-direction:column;">
+    <div style="position:absolute; inset:0; pointer-events:none; z-index:0; background:radial-gradient(120% 92% at 50% 38%, transparent 52%, rgba(2,5,14,.55) 86%, rgba(2,5,14,.9) 100%);"></div>
+    <div class="girih" style="position:absolute; left:0; right:0; top:0; height:560px; opacity:.10; pointer-events:none; z-index:0; -webkit-mask-image:radial-gradient(115% 78% at 50% 16%, #000 30%, transparent 76%); mask-image:radial-gradient(115% 78% at 50% 16%, #000 30%, transparent 76%);"></div>
+    <div class="deco" style="position:absolute; inset:0; pointer-events:none; z-index:1;"></div>
+    <canvas class="dust" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2;"></canvas>
+    <div class="glow" style="position:absolute; left:50%; top:200px; width:430px; height:430px; transform:translate(-50%,-50%); pointer-events:none; z-index:1; opacity:.5; background:radial-gradient(circle, rgba(231,194,108,.22) 0%, rgba(231,194,108,.06) 40%, rgba(231,194,108,0) 66%); animation:ayahGlowPulse 5.5s ease-in-out infinite;"></div>
+    <svg class="arch" viewBox="0 0 360 582" style="position:absolute; left:50%; top:20px; transform:translateX(-50%); width:362px; height:auto; z-index:1; overflow:visible; opacity:.55;">
+      <defs>
+        <linearGradient id="ayNavyFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16294f"></stop><stop offset="0.5" stop-color="#0c1a40"></stop><stop offset="1" stop-color="#081232"></stop></linearGradient>
+        <radialGradient id="ayArchGlow" cx="0.5" cy="0.34" r="0.6"><stop offset="0" stop-color="rgba(231,194,108,0.30)"></stop><stop offset="0.5" stop-color="rgba(231,194,108,0.08)"></stop><stop offset="1" stop-color="rgba(231,194,108,0)"></stop></radialGradient>
+        <linearGradient id="ayGoldStroke" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbeeb8"></stop><stop offset="0.45" stop-color="#dcb85f"></stop><stop offset="1" stop-color="#7d6128"></stop></linearGradient>
+        <pattern id="ayGirihPat" width="64" height="64" patternUnits="userSpaceOnUse"><path class="patStar" d="" fill="none" stroke="#d8b45c" stroke-width="0.8"></path></pattern>
+        <clipPath id="ayArchClip"><path d="M180 18 C 206 58 300 96 300 172 C 300 232 288 252 288 552 L 72 552 C 72 252 60 232 60 172 C 60 96 154 58 180 18 Z"></path></clipPath>
+        <filter id="ayGoldBlur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
+      </defs>
+      <path class="archFill" d="M180 18 C 206 58 300 96 300 172 C 300 232 288 252 288 552 L 72 552 C 72 252 60 232 60 172 C 60 96 154 58 180 18 Z" fill="url(#ayNavyFill)"></path>
+      <g clip-path="url(#ayArchClip)">
+        <rect x="0" y="0" width="360" height="582" fill="url(#ayGirihPat)" opacity="0.42"></rect>
+        <ellipse cx="180" cy="150" rx="150" ry="170" fill="url(#ayArchGlow)"></ellipse>
+        <path d="M180 18 C 206 58 300 96 300 172 C 300 232 288 252 288 552 L 72 552 C 72 252 60 232 60 172 C 60 96 154 58 180 18 Z" fill="none" stroke="rgba(0,0,0,0.55)" stroke-width="11" transform="translate(180 285) scale(1.03) translate(-180 -285)"></path>
+      </g>
+      <circle class="r-finial" cx="180" cy="18" r="5.5" fill="#fbeeb8" stroke="#7d6128" stroke-width="0.6" style="filter:drop-shadow(0 0 6px rgba(251,238,184,.85)); opacity:0;"></circle>
+      <path class="archStroke" d="M180 552 L 288 552 C 288 252 300 232 300 172 C 300 96 206 58 180 18" fill="none" stroke="url(#ayGoldStroke)" stroke-width="2.6" filter="url(#ayGoldBlur)"></path>
+      <path class="archStroke" d="M180 552 L 72 552 C 72 252 60 232 60 172 C 60 96 154 58 180 18" fill="none" stroke="url(#ayGoldStroke)" stroke-width="2.6" filter="url(#ayGoldBlur)"></path>
+      <path d="M180 18 C 206 58 300 96 300 172 C 300 232 288 252 288 552 L 72 552 C 72 252 60 232 60 172 C 60 96 154 58 180 18 Z" fill="none" stroke="rgba(251,238,184,0.32)" stroke-width="0.9" transform="translate(180 285) scale(0.955) translate(-180 -285)"></path>
+    </svg>
+    <div class="archFlash" style="position:absolute; left:50%; top:130px; width:340px; height:340px; transform:translate(-50%,-50%) scale(0.6); opacity:0; pointer-events:none; z-index:3; background:radial-gradient(circle, rgba(255,245,210,.9) 0%, rgba(231,194,108,.5) 26%, rgba(231,194,108,0) 60%);"></div>
+    <div style="position:absolute; inset:12px; border:1.6px solid rgba(216,180,92,.5); border-radius:24px; pointer-events:none; z-index:6; box-shadow:0 0 26px rgba(216,180,92,.1) inset;"></div>
+    <div style="position:absolute; inset:19px; border:1px solid rgba(216,180,92,.24); border-radius:19px; pointer-events:none; z-index:6;"></div>
+    <div class="ay-view ay-scroll" style="position:relative; z-index:5; flex:1; display:flex; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch;"></div>
+    <div class="ay-nav" style="position:relative; z-index:7; flex:0 0 auto; display:none; align-items:center; justify-content:space-around; padding:10px 24px calc(14px + env(safe-area-inset-bottom)); margin:0 6px; border-top:1px solid rgba(216,180,92,.18); background:linear-gradient(180deg, rgba(6,14,41,0), rgba(4,9,31,.55));"></div>
+  </div>
+</div>
+<audio id="ay-audio" preload="none"></audio>
+<script>
+// Ayah - frequency-ranked Quranic vocabulary (verified high-frequency core).
+// Fields: r rank, a arabic surface form, t transliteration, e english meaning,
+// rt 3-letter root (null for pure particles), f approx Quran-wide frequency,
+// s/v representative ayah (surah:verse) known to contain the word.
+// Verse text, translation and per-word audio are fetched live from Quran.com.
+const VOCAB = [
+  { r:1,  a:"ٱللَّهِ", t:"Allah", e:"Allah / God", rt:"ا ل ه", f:2699, s:1, v:1 },
+  { r:2,  a:"مِن", t:"min", e:"from / of", rt:null, f:3226, s:2, v:23 },
+  { r:3,  a:"فِى", t:"fi", e:"in / within", rt:null, f:1701, s:2, v:10 },
+  { r:4,  a:"مَا", t:"ma", e:"what / not", rt:null, f:2570, s:2, v:17 },
+  { r:5,  a:"لَا", t:"la", e:"no / not", rt:null, f:1700, s:2, v:2 },
+  { r:6,  a:"إِنَّ", t:"inna", e:"indeed / truly", rt:null, f:1682, s:2, v:6 },
+  { r:7,  a:"عَلَىٰ", t:"ala", e:"upon / on", rt:null, f:1445, s:2, v:5 },
+  { r:8,  a:"إِلَّا", t:"illa", e:"except / only", rt:null, f:663, s:2, v:9 },
+  { r:9,  a:"وَمَا", t:"wa-ma", e:"and what / and not", rt:null, f:1200, s:2, v:9 },
+  { r:10, a:"ٱلَّذِينَ", t:"alladhina", e:"those who", rt:null, f:1080, s:2, v:6 },
+  { r:11, a:"مَن", t:"man", e:"who / whoever", rt:null, f:1200, s:2, v:8 },
+  { r:12, a:"إِلَىٰ", t:"ila", e:"to / towards", rt:null, f:742, s:2, v:14 },
+  { r:13, a:"كَانَ", t:"kana", e:"was / to be", rt:"ك و ن", f:1358, s:2, v:10 },
+  { r:14, a:"رَبِّ", t:"rabbi", e:"Lord / Sustainer", rt:"ر ب ب", f:970, s:1, v:2 },
+  { r:15, a:"ٱلنَّاسِ", t:"al-nas", e:"the people / mankind", rt:"ن و س", f:241, s:2, v:8 },
+  { r:16, a:"قَالَ", t:"qala", e:"he said", rt:"ق و ل", f:1722, s:2, v:30 },
+  { r:17, a:"إِنَّآ", t:"inna", e:"indeed we", rt:null, f:300, s:2, v:6 },
+  { r:18, a:"ٱلَّذِى", t:"alladhi", e:"the one who", rt:null, f:328, s:2, v:17 },
+  { r:19, a:"يَوْمَ", t:"yawma", e:"day / on the day", rt:"ي و م", f:405, s:1, v:4 },
+  { r:20, a:"كُلِّ", t:"kulli", e:"every / all", rt:"ك ل ل", f:358, s:2, v:20 },
+  { r:21, a:"بِمَا", t:"bima", e:"with what / because", rt:null, f:343, s:2, v:9 },
+  { r:22, a:"وَلَا", t:"wa-la", e:"and not / nor", rt:null, f:900, s:1, v:7 },
+  { r:23, a:"هُوَ", t:"huwa", e:"he / it", rt:null, f:480, s:2, v:29 },
+  { r:24, a:"ٱلْأَرْضِ", t:"al-ard", e:"the earth / land", rt:"ا ر ض", f:461, s:2, v:11 },
+  { r:25, a:"رَبَّنَا", t:"rabbana", e:"our Lord", rt:"ر ب ب", f:160, s:2, v:127 },
+  { r:26, a:"ٱلسَّمَآءِ", t:"al-sama", e:"the heaven / sky", rt:"س م و", f:310, s:2, v:19 },
+  { r:27, a:"عَذَابٌ", t:"adhab", e:"punishment / torment", rt:"ع ذ ب", f:322, s:2, v:7 },
+  { r:28, a:"قُلْ", t:"qul", e:"say!", rt:"ق و ل", f:332, s:2, v:80 },
+  { r:29, a:"ٱلْكِتَٰبَ", t:"al-kitab", e:"the Book / Scripture", rt:"ك ت ب", f:319, s:2, v:2 },
+  { r:30, a:"ءَامَنُوا", t:"amanu", e:"they believed", rt:"ا م ن", f:258, s:2, v:9 },
+  { r:31, a:"كَفَرُوا", t:"kafaru", e:"they disbelieved", rt:"ك ف ر", f:230, s:2, v:6 },
+  { r:32, a:"هُمْ", t:"hum", e:"they / them", rt:null, f:520, s:2, v:5 },
+  { r:33, a:"إِن", t:"in", e:"if", rt:null, f:690, s:2, v:23 },
+  { r:34, a:"أَن", t:"an", e:"that / to", rt:null, f:578, s:2, v:26 },
+  { r:35, a:"عَنْ", t:"an", e:"from / about", rt:null, f:465, s:2, v:74 },
+  { r:36, a:"ثُمَّ", t:"thumma", e:"then / afterwards", rt:null, f:338, s:2, v:28 },
+  { r:37, a:"كَانُوا", t:"kanu", e:"they were", rt:"ك و ن", f:280, s:2, v:10 },
+  { r:38, a:"إِذَا", t:"idha", e:"when", rt:null, f:407, s:2, v:11 },
+  { r:39, a:"إِذْ", t:"idh", e:"when / mention when", rt:null, f:330, s:2, v:30 },
+  { r:40, a:"لَهُمْ", t:"lahum", e:"for them / they have", rt:null, f:470, s:2, v:7 },
+  { r:41, a:"بِهِ", t:"bihi", e:"with it / in him", rt:null, f:430, s:2, v:22 },
+  { r:42, a:"ٱلَّتِى", t:"allati", e:"the one who (f.)", rt:null, f:96, s:2, v:24 },
+  { r:43, a:"يَعْلَمُونَ", t:"yalamun", e:"they know", rt:"ع ل م", f:88, s:2, v:13 },
+  { r:44, a:"رَسُولُ", t:"rasul", e:"messenger", rt:"ر س ل", f:332, s:2, v:101 },
+  { r:45, a:"شَىْءٍ", t:"shay", e:"a thing / anything", rt:"ش ي ا", f:283, s:2, v:20 },
+  { r:46, a:"غَيْرِ", t:"ghayri", e:"other than / without", rt:"غ ي ر", f:147, s:1, v:7 },
+  { r:47, a:"عَلِيمٌ", t:"alim", e:"all-knowing", rt:"ع ل م", f:163, s:2, v:32 },
+  { r:48, a:"عَلَيْهِمْ", t:"alayhim", e:"upon them", rt:null, f:340, s:1, v:7 },
+  { r:49, a:"وَهُوَ", t:"wa-huwa", e:"and he / and it", rt:null, f:196, s:2, v:29 },
+  { r:50, a:"نَّفْسٍ", t:"nafs", e:"soul / self", rt:"ن ف س", f:295, s:2, v:48 },
+  { r:51, a:"ٱلْحَمْدُ", t:"al-hamd", e:"all praise", rt:"ح م د", f:43, s:1, v:2 },
+  { r:52, a:"ٱلْعَٰلَمِينَ", t:"al-alamin", e:"the worlds", rt:"ع ل م", f:73, s:1, v:2 },
+  { r:53, a:"ٱلرَّحْمَٰنِ", t:"al-rahman", e:"the Most Gracious", rt:"ر ح م", f:57, s:1, v:1 },
+  { r:54, a:"ٱلرَّحِيمِ", t:"al-rahim", e:"the Most Merciful", rt:"ر ح م", f:114, s:1, v:1 },
+  { r:55, a:"مَٰلِكِ", t:"malik", e:"master / owner", rt:"م ل ك", f:49, s:1, v:4 },
+  { r:56, a:"ٱلدِّينِ", t:"al-din", e:"the religion / judgment", rt:"د ي ن", f:92, s:1, v:4 },
+  { r:57, a:"نَعْبُدُ", t:"nabudu", e:"we worship", rt:"ع ب د", f:23, s:1, v:5 },
+  { r:58, a:"نَسْتَعِينُ", t:"nastain", e:"we seek help", rt:"ع و ن", f:10, s:1, v:5 },
+  { r:59, a:"ٱهْدِنَا", t:"ihdina", e:"guide us", rt:"ه د ي", f:8, s:1, v:6 },
+  { r:60, a:"ٱلصِّرَٰطَ", t:"al-sirat", e:"the path", rt:"ص ر ط", f:45, s:1, v:6 },
+  { r:61, a:"ٱلْمُسْتَقِيمَ", t:"al-mustaqim", e:"the straight", rt:"ق و م", f:37, s:1, v:6 },
+  { r:62, a:"أَنْعَمْتَ", t:"anamta", e:"You bestowed favor", rt:"ن ع م", f:7, s:1, v:7 },
+  { r:63, a:"وَإِذَا", t:"wa-idha", e:"and when", rt:null, f:200, s:2, v:11 },
+  { r:64, a:"قُلُوبِهِم", t:"qulubihim", e:"their hearts", rt:"ق ل ب", f:132, s:2, v:7 },
+  { r:65, a:"ٱلصَّلَوٰةَ", t:"al-salat", e:"the prayer", rt:"ص ل و", f:67, s:2, v:3 },
+  { r:66, a:"يُؤْمِنُونَ", t:"yu'minun", e:"they believe", rt:"ا م ن", f:87, s:2, v:3 },
+  { r:67, a:"ٱلْغَيْبِ", t:"al-ghayb", e:"the unseen", rt:"غ ي ب", f:49, s:2, v:3 },
+  { r:68, a:"رَزَقْنَٰهُمْ", t:"razaqnahum", e:"We provided them", rt:"ر ز ق", f:30, s:2, v:3 },
+  { r:69, a:"يُنفِقُونَ", t:"yunfiqun", e:"they spend", rt:"ن ف ق", f:24, s:2, v:3 },
+  { r:70, a:"ٱلْءَاخِرَةِ", t:"al-akhira", e:"the Hereafter", rt:"ا خ ر", f:115, s:2, v:4 },
+  { r:71, a:"هُدًى", t:"hudan", e:"guidance", rt:"ه د ي", f:85, s:2, v:2 },
+  { r:72, a:"رَّبِّهِمْ", t:"rabbihim", e:"their Lord", rt:"ر ب ب", f:130, s:2, v:5 },
+  { r:73, a:"ٱلْمُفْلِحُونَ", t:"al-muflihun", e:"the successful", rt:"ف ل ح", f:13, s:2, v:5 },
+  { r:74, a:"سَوَآءٌ", t:"sawa", e:"the same / equal", rt:"س و ي", f:34, s:2, v:6 },
+  { r:75, a:"تُنذِرْهُمْ", t:"tundhirhum", e:"you warn them", rt:"ن ذ ر", f:18, s:2, v:6 },
+  { r:76, a:"خَتَمَ", t:"khatama", e:"He sealed", rt:"خ ت م", f:8, s:2, v:7 },
+  { r:77, a:"سَمْعِهِمْ", t:"samihim", e:"their hearing", rt:"س م ع", f:22, s:2, v:7 },
+  { r:78, a:"أَبْصَٰرِهِمْ", t:"absarihim", e:"their sight", rt:"ب ص ر", f:38, s:2, v:7 },
+  { r:79, a:"عَظِيمٌ", t:"azim", e:"great / mighty", rt:"ع ظ م", f:129, s:2, v:7 },
+  { r:80, a:"يَقُولُ", t:"yaqulu", e:"he says", rt:"ق و ل", f:88, s:2, v:8 },
+  { r:81, a:"ءَامَنَّا", t:"amanna", e:"we believed", rt:"ا م ن", f:39, s:2, v:8 },
+  { r:82, a:"بِٱللَّهِ", t:"billah", e:"in Allah", rt:"ا ل ه", f:140, s:2, v:8 },
+  { r:83, a:"يُخَٰدِعُونَ", t:"yukhadiun", e:"they deceive", rt:"خ د ع", f:5, s:2, v:9 },
+  { r:84, a:"أَنفُسَهُمْ", t:"anfusahum", e:"themselves", rt:"ن ف س", f:78, s:2, v:9 },
+  { r:85, a:"يَشْعُرُونَ", t:"yash'urun", e:"they perceive", rt:"ش ع ر", f:30, s:2, v:9 },
+  { r:86, a:"مَّرَضٌ", t:"marad", e:"a disease / illness", rt:"م ر ض", f:24, s:2, v:10 },
+  { r:87, a:"فَزَادَهُمُ", t:"fazadahum", e:"so He increased them", rt:"ز ي د", f:60, s:2, v:10 },
+  { r:88, a:"أَلِيمٌ", t:"alim", e:"painful", rt:"ا ل م", f:72, s:2, v:10 },
+  { r:89, a:"يَكْذِبُونَ", t:"yakdhibun", e:"they lie", rt:"ك ذ ب", f:42, s:2, v:10 },
+  { r:90, a:"تُفْسِدُوا", t:"tufsidu", e:"do not cause corruption", rt:"ف س د", f:50, s:2, v:11 },
+  { r:91, a:"ٱلْمُفْسِدُونَ", t:"al-mufsidun", e:"the corrupters", rt:"ف س د", f:11, s:2, v:12 },
+  { r:92, a:"وَلَٰكِن", t:"wa-lakin", e:"but / however", rt:null, f:120, s:2, v:12 },
+  { r:93, a:"ٱلسُّفَهَآءُ", t:"al-sufaha", e:"the foolish", rt:"س ف ه", f:9, s:2, v:13 },
+  { r:94, a:"خَلَوْا", t:"khalaw", e:"they were alone", rt:"خ ل و", f:14, s:2, v:14 },
+  { r:95, a:"مُسْتَهْزِءُونَ", t:"mustahziun", e:"mockers", rt:"ه ز ا", f:7, s:2, v:14 },
+  { r:96, a:"يَسْتَهْزِئُ", t:"yastahzi", e:"He mocks", rt:"ه ز ا", f:6, s:2, v:15 },
+  { r:97, a:"ٱشْتَرَوُا", t:"ishtaraw", e:"they purchased", rt:"ش ر ي", f:25, s:2, v:16 },
+  { r:98, a:"ٱلضَّلَٰلَةَ", t:"al-dalala", e:"error / misguidance", rt:"ض ل ل", f:30, s:2, v:16 },
+  { r:99, a:"بِٱلْهُدَىٰ", t:"bil-huda", e:"for guidance", rt:"ه د ي", f:18, s:2, v:16 },
+  { r:100, a:"نُورِهِمْ", t:"nurihim", e:"their light", rt:"ن و ر", f:43, s:2, v:17 },
+  { r:101, a:"يَرْجِعُونَ", t:"yarji'un", e:"they return", rt:"ر ج ع", f:35, s:2, v:18 },
+  { r:102, a:"ٱلْمَوْتِ", t:"al-mawt", e:"death", rt:"م و ت", f:165, s:2, v:19 },
+  { r:103, a:"قَدِيرٌ", t:"qadir", e:"all-powerful", rt:"ق د ر", f:45, s:2, v:20 },
+  { r:104, a:"ٱعْبُدُوا", t:"u'budu", e:"worship!", rt:"ع ب د", f:30, s:2, v:21 },
+  { r:105, a:"خَلَقَكُمْ", t:"khalaqakum", e:"He created you", rt:"خ ل ق", f:40, s:2, v:21 },
+  { r:106, a:"تَتَّقُونَ", t:"tattaqun", e:"you may be mindful", rt:"و ق ي", f:50, s:2, v:21 },
+  { r:107, a:"جَعَلَ", t:"ja'ala", e:"He made", rt:"ج ع ل", f:340, s:2, v:22 },
+  { r:108, a:"ٱلْمَآءِ", t:"al-ma", e:"the water", rt:"م و ه", f:63, s:2, v:22 },
+  { r:109, a:"رِزْقًا", t:"rizqan", e:"provision", rt:"ر ز ق", f:50, s:2, v:22 },
+  { r:110, a:"تَعْلَمُونَ", t:"ta'lamun", e:"you know", rt:"ع ل م", f:120, s:2, v:22 },
+  { r:111, a:"عَبْدِنَا", t:"abdina", e:"Our servant", rt:"ع ب د", f:25, s:2, v:23 },
+  { r:112, a:"شُهَدَآءَكُم", t:"shuhada'akum", e:"your witnesses", rt:"ش ه د", f:20, s:2, v:23 },
+  { r:113, a:"صَٰدِقِينَ", t:"sadiqin", e:"truthful ones", rt:"ص د ق", f:50, s:2, v:23 },
+  { r:114, a:"ٱلنَّارَ", t:"al-nar", e:"the Fire", rt:"ن و ر", f:145, s:2, v:24 },
+  { r:115, a:"وَقُودُهَا", t:"waquduha", e:"its fuel", rt:"و ق د", f:5, s:2, v:24 },
+  { r:116, a:"وَبَشِّرِ", t:"wa-bashshir", e:"and give good news", rt:"ب ش ر", f:48, s:2, v:25 },
+  { r:117, a:"وَعَمِلُوا", t:"wa-amilu", e:"and did / acted", rt:"ع م ل", f:73, s:2, v:25 },
+  { r:118, a:"ٱلصَّٰلِحَٰتِ", t:"al-salihat", e:"righteous deeds", rt:"ص ل ح", f:62, s:2, v:25 },
+  { r:119, a:"جَنَّٰتٍ", t:"jannat", e:"gardens / paradise", rt:"ج ن ن", f:147, s:2, v:25 },
+  { r:120, a:"تَجْرِى", t:"tajri", e:"flows / runs", rt:"ج ر ي", f:64, s:2, v:25 },
+  { r:121, a:"ٱلْأَنْهَٰرُ", t:"al-anhar", e:"the rivers", rt:"ن ه ر", f:54, s:2, v:25 },
+  { r:122, a:"خَٰلِدُونَ", t:"khalidun", e:"abiding forever", rt:"خ ل د", f:42, s:2, v:25 },
+  { r:123, a:"يَسْتَحْىِۦٓ", t:"yastahyi", e:"He is shy / refrains", rt:"ح ي ي", f:6, s:2, v:26 },
+  { r:124, a:"ٱلْحَقُّ", t:"al-haqq", e:"the truth", rt:"ح ق ق", f:227, s:2, v:26 },
+  { r:125, a:"ٱلْفَٰسِقِينَ", t:"al-fasiqin", e:"the defiantly disobedient", rt:"ف س ق", f:35, s:2, v:26 },
+  { r:126, a:"عَهْدَ", t:"ahda", e:"covenant / pledge", rt:"ع ه د", f:46, s:2, v:27 },
+  { r:127, a:"ٱلْخَٰسِرُونَ", t:"al-khasirun", e:"the losers", rt:"خ س ر", f:33, s:2, v:27 },
+  { r:128, a:"تَكْفُرُونَ", t:"takfurun", e:"you disbelieve", rt:"ك ف ر", f:40, s:2, v:28 },
+  { r:129, a:"أَمْوَٰتًا", t:"amwatan", e:"dead / lifeless", rt:"م و ت", f:35, s:2, v:28 },
+  { r:130, a:"فَأَحْيَٰكُمْ", t:"fa-ahyakum", e:"then gave you life", rt:"ح ي ي", f:30, s:2, v:28 },
+  { r:131, a:"ٱسْتَوَىٰٓ", t:"istawa", e:"He established / rose", rt:"س و ي", f:30, s:2, v:29 },
+  { r:132, a:"سَمَٰوَٰتٍ", t:"samawat", e:"heavens", rt:"س م و", f:190, s:2, v:29 },
+  { r:133, a:"ٱلْمَلَٰٓئِكَةِ", t:"al-malaika", e:"the angels", rt:"م ل ك", f:88, s:2, v:30 },
+  { r:134, a:"خَلِيفَةً", t:"khalifa", e:"a successor / vicegerent", rt:"خ ل ف", f:9, s:2, v:30 },
+  { r:135, a:"نُسَبِّحُ", t:"nusabbihu", e:"we glorify", rt:"س ب ح", f:30, s:2, v:30 },
+  { r:136, a:"بِحَمْدِكَ", t:"bihamdika", e:"with Your praise", rt:"ح م د", f:18, s:2, v:30 },
+  { r:137, a:"وَعَلَّمَ", t:"wa-allama", e:"and He taught", rt:"ع ل م", f:40, s:2, v:31 },
+  { r:138, a:"ٱلْأَسْمَآءَ", t:"al-asma", e:"the names", rt:"س م و", f:20, s:2, v:31 },
+  { r:139, a:"ٱلْحَكِيمُ", t:"al-hakim", e:"the All-Wise", rt:"ح ك م", f:97, s:2, v:32 },
+  { r:140, a:"ٱسْجُدُوا", t:"usjudu", e:"prostrate!", rt:"س ج د", f:30, s:2, v:34 },
+  { r:141, a:"إِبْلِيسَ", t:"iblis", e:"Iblis (Satan)", rt:null, f:11, s:2, v:34 },
+  { r:142, a:"ٱسْتَكْبَرَ", t:"istakbara", e:"he was arrogant", rt:"ك ب ر", f:48, s:2, v:34 },
+  { r:143, a:"ٱلْجَنَّةَ", t:"al-janna", e:"the Garden / Paradise", rt:"ج ن ن", f:66, s:2, v:35 },
+  { r:144, a:"ٱلظَّٰلِمِينَ", t:"al-zalimin", e:"the wrongdoers", rt:"ظ ل م", f:128, s:2, v:35 },
+  { r:145, a:"ٱلشَّيْطَٰنُ", t:"al-shaytan", e:"Satan / the devil", rt:"ش ط ن", f:88, s:2, v:36 },
+  { r:146, a:"ٱهْبِطُوا", t:"ihbitu", e:"go down!", rt:"ه ب ط", f:9, s:2, v:36 },
+  { r:147, a:"فَتَابَ", t:"fataba", e:"then He turned in mercy", rt:"ت و ب", f:72, s:2, v:37 },
+  { r:148, a:"ٱلتَّوَّابُ", t:"al-tawwab", e:"the Acceptor of repentance", rt:"ت و ب", f:11, s:2, v:37 },
+  { r:149, a:"خَوْفٌ", t:"khawf", e:"fear", rt:"خ و ف", f:38, s:2, v:38 },
+  { r:150, a:"يَحْزَنُونَ", t:"yahzanun", e:"they grieve", rt:"ح ز ن", f:21, s:2, v:38 },
+  { r:151, a:"بِـَٔايَٰتِنَآ", t:"bi-ayatina", e:"in Our signs / verses", rt:"ا ي ي", f:84, s:2, v:39 },
+  { r:152, a:"أَصْحَٰبُ", t:"ashab", e:"companions / people of", rt:"ص ح ب", f:78, s:2, v:39 },
+  { r:153, a:"ٱذْكُرُوا", t:"udhkuru", e:"remember!", rt:"ذ ك ر", f:40, s:2, v:40 },
+  { r:154, a:"نِعْمَتِىَ", t:"ni'mati", e:"My favor / blessing", rt:"ن ع م", f:50, s:2, v:40 },
+  { r:155, a:"وَأَوْفُوا", t:"wa-awfu", e:"and fulfill!", rt:"و ف ي", f:20, s:2, v:40 },
+  { r:156, a:"وَءَامِنُوا", t:"wa-aminu", e:"and believe!", rt:"ا م ن", f:25, s:2, v:41 },
+  { r:157, a:"تَلْبِسُوا", t:"talbisu", e:"do not mix / confuse", rt:"ل ب س", f:10, s:2, v:42 },
+  { r:158, a:"وَأَقِيمُوا", t:"wa-aqimu", e:"and establish!", rt:"ق و م", f:30, s:2, v:43 },
+  { r:159, a:"ٱلزَّكَوٰةَ", t:"al-zakat", e:"the alms / purifying charity", rt:"ز ك و", f:32, s:2, v:43 },
+  { r:160, a:"وَٱرْكَعُوا", t:"wa-rka'u", e:"and bow!", rt:"ر ك ع", f:13, s:2, v:43 },
+  { r:161, a:"أَتَأْمُرُونَ", t:"ata'murun", e:"do you order", rt:"ا م ر", f:5, s:2, v:44 },
+  { r:162, a:"بِٱلْبِرِّ", t:"bil-birr", e:"with righteousness", rt:"ب ر ر", f:20, s:2, v:44 },
+  { r:163, a:"تَعْقِلُونَ", t:"ta'qilun", e:"you use reason", rt:"ع ق ل", f:24, s:2, v:44 },
+  { r:164, a:"وَٱسْتَعِينُوا", t:"wa-sta'inu", e:"and seek help!", rt:"ع و ن", f:8, s:2, v:45 },
+  { r:165, a:"بِٱلصَّبْرِ", t:"bil-sabr", e:"with patience", rt:"ص ب ر", f:30, s:2, v:45 },
+  { r:166, a:"ٱلْخَٰشِعِينَ", t:"al-khashi'in", e:"the humble ones", rt:"خ ش ع", f:9, s:2, v:45 },
+  { r:167, a:"مُّلَٰقُوا", t:"mulaqu", e:"they will meet", rt:"ل ق ي", f:24, s:2, v:46 },
+  { r:168, a:"رَٰجِعُونَ", t:"raji'un", e:"returning ones", rt:"ر ج ع", f:12, s:2, v:46 },
+  { r:169, a:"فَضَّلْتُكُمْ", t:"faddaltukum", e:"I favored you", rt:"ف ض ل", f:14, s:2, v:47 },
+  { r:170, a:"وَٱتَّقُوا", t:"wa-ttaqu", e:"and fear / be mindful!", rt:"و ق ي", f:45, s:2, v:48 },
+  { r:171, a:"شَفَٰعَةٌ", t:"shafa'a", e:"intercession", rt:"ش ف ع", f:30, s:2, v:48 },
+  { r:172, a:"يُنصَرُونَ", t:"yunsarun", e:"they are helped", rt:"ن ص ر", f:18, s:2, v:48 },
+  { r:173, a:"نَجَّيْنَٰكُم", t:"najjaynakum", e:"We saved you", rt:"ن ج و", f:20, s:2, v:49 },
+  { r:174, a:"فِرْعَوْنَ", t:"fir'awn", e:"Pharaoh", rt:null, f:74, s:2, v:49 },
+  { r:175, a:"ٱلْعَذَابِ", t:"al-adhab", e:"the punishment", rt:"ع ذ ب", f:100, s:2, v:49 },
+  { r:176, a:"ٱلْبَحْرَ", t:"al-bahr", e:"the sea", rt:"ب ح ر", f:41, s:2, v:50 },
+  { r:177, a:"مُوسَىٰ", t:"musa", e:"Moses", rt:null, f:136, s:2, v:51 },
+  { r:178, a:"ظَٰلِمُونَ", t:"zalimun", e:"wrongdoers", rt:"ظ ل م", f:33, s:2, v:51 },
+  { r:179, a:"تَشْكُرُونَ", t:"tashkurun", e:"you give thanks", rt:"ش ك ر", f:32, s:2, v:52 },
+  { r:180, a:"وَٱلْفُرْقَانَ", t:"wa-l-furqan", e:"and the criterion", rt:"ف ر ق", f:7, s:2, v:53 },
+  { r:181, a:"تَهْتَدُونَ", t:"tahtadun", e:"you are guided", rt:"ه د ي", f:14, s:2, v:53 },
+  { r:182, a:"ٱلسَّمِيعُ", t:"al-sami", e:"the All-Hearing", rt:"س م ع", f:32, s:2, v:127 },
+  { r:183, a:"بَصِيرٌ", t:"basir", e:"all-seeing", rt:"ب ص ر", f:51, s:2, v:96 },
+  { r:184, a:"ٱلْعَزِيزُ", t:"al-aziz", e:"the Almighty", rt:"ع ز ز", f:92, s:2, v:129 },
+  { r:185, a:"غَفُورٌ", t:"ghafur", e:"oft-forgiving", rt:"غ ف ر", f:91, s:2, v:173 },
+  { r:186, a:"وَٱلْيَوْمِ", t:"wa-l-yawm", e:"and the Day", rt:"ي و م", f:40, s:2, v:8 },
+  { r:187, a:"خَيْرٌ", t:"khayr", e:"good / better", rt:"خ ي ر", f:180, s:2, v:54 },
+  { r:188, a:"وَٱلْأَرْضَ", t:"wa-l-ard", e:"and the earth", rt:"ا ر ض", f:60, s:2, v:29 },
+  { r:189, a:"يَشَآءُ", t:"yasha", e:"He wills", rt:"ش ي ا", f:120, s:2, v:90 },
+  { r:190, a:"عِندَ", t:"inda", e:"with / near", rt:null, f:200, s:2, v:54 },
+  { r:191, a:"وَلَكُمْ", t:"wa-lakum", e:"and for you", rt:null, f:90, s:2, v:36 },
+  { r:192, a:"بَيْنَ", t:"bayna", e:"between", rt:"ب ي ن", f:262, s:2, v:66 },
+  { r:193, a:"أَيْدِيهِم", t:"aydihim", e:"their hands", rt:"ي د ي", f:120, s:2, v:66 },
+  { r:194, a:"لِّلْمُتَّقِينَ", t:"lil-muttaqin", e:"for the God-conscious", rt:"و ق ي", f:40, s:2, v:2 },
+  { r:195, a:"وَنَحْنُ", t:"wa-nahnu", e:"and we", rt:null, f:80, s:2, v:30 },
+  { r:196, a:"لَعَلَّكُمْ", t:"la'allakum", e:"so that you may", rt:null, f:100, s:2, v:21 },
+  { r:197, a:"ٱلْكَٰفِرِينَ", t:"al-kafirin", e:"the disbelievers", rt:"ك ف ر", f:130, s:2, v:24 },
+  { r:198, a:"عَدُوٌّ", t:"aduww", e:"an enemy", rt:"ع د و", f:74, s:2, v:36 },
+  { r:199, a:"كَلِمَٰتٍ", t:"kalimat", e:"words", rt:"ك ل م", f:42, s:2, v:37 },
+  { r:200, a:"رَّحِيمٌ", t:"rahim", e:"merciful", rt:"ر ح م", f:114, s:2, v:37 }
+];
+
+
+(function(){
+"use strict";
+
+// ============ CONSTANTS ============
+var TOTAL_TARGET = 500;            // words that map to 75% comprehension
+var PCT_AT_TARGET = 75;            // comprehension % at 500 words
+var BANDS = 15;                    // milestone bands, 5% each
+var WORDS_PER_BAND = TOTAL_TARGET / BANDS;   // ~33.33
+var LESSON_SIZE = 8;               // words per short lesson
+var XP_PER_WORD = 12;
+var XP_PER_LESSON = 40;
+var API = "https://api.quran.com/api/v4";
+var AUDIO_BASE = "https://audio.qurancdn.com/";
+var PICKTHALL = 19;                // quran.com translation resource id
+
+var SURAH_NAMES = {1:"Al-Fatiha",2:"Al-Baqarah",103:"Al-Asr",112:"Al-Ikhlas",114:"An-Nas"};
+
+var STORE_KEY = "ayah_state_revision_demo";
+var SEED_LESSONS_DONE = 2;
+
+var GLYPHS = ['ﻕ','ﻝ','ﺝ','و','ﻡ','ﻩ','ا','ن','ر','ب','ع','ك','ﺙ','ﺡ'];
+var ART = '#c9a24a';
+var PHRASES = [
+  { ar:'مَا شَاءَ اللَّهُ', en:'What Allah wills, beautiful!' },
+  { ar:'اَلْحَمْدُ لِلَّهِ', en:'All praise belongs to Allah' },
+  { ar:'سُبْحَانَ اللَّهِ', en:'Glory be to Allah' },
+  { ar:'أَحْسَنْتَ!', en:'You did well!' },
+  { ar:'بَارَكَ اللَّهُ فِيكَ', en:'May Allah bless you' }
+];
+
+// Lessons: sequential groups of LESSON_SIZE words from VOCAB.
+function buildLessons(){
+  var L = [], i;
+  for (i=0;i<VOCAB.length;i+=LESSON_SIZE){
+    var slice = VOCAB.slice(i, i+LESSON_SIZE);
+    var band = Math.min(BANDS, Math.floor(slice[0].r / WORDS_PER_BAND) + 1);
+    L.push({ idx:L.length, words:slice, band:band });
+  }
+  return L;
+}
+var LESSONS = buildLessons();
+
+// Band -> lessons map
+function lessonsInBand(b){ return LESSONS.filter(function(l){ return l.band===b; }); }
+function bandHasContent(b){ return lessonsInBand(b).length>0; }
+
+// ============ HELPERS ============
+function stripDia(s){
+  if(!s) return "";
+  // remove Arabic diacritics, tatweel, quranic marks, and normalize alef/hamza variants
+  return s.replace(/[ؐ-ًؚ-ٰٟۖ-ۭـ]/g,"")
+          .replace(/[آأإٱ]/g,"ا")
+          .replace(/ى/g,"ي")
+          .replace(/ة/g,"ه")
+          .replace(/‍/g,"")
+          .trim();
+}
+function $(s,ctx){ return (ctx||document).querySelector(s); }
+function $all(s,ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(s)); }
+function shuffle(a){ return a.map(function(v){return [Math.random(),v];}).sort(function(x,y){return x[0]-y[0];}).map(function(x){return x[1];}); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
+
+// ============ APP ============
+function App(){
+  this.root = $('#root');
+  this.view = $('.ay-view');
+  this.nav = $('.ay-nav');
+  this.audio = $('#ay-audio');
+  this.verseCache = {};
+  this.phraseIdx = 0;
+  this.data = this.load();
+  this.boot();
+}
+
+App.prototype.defaults = function(){
+  return {
+    onboarded:false, streak:0, lastDate:null,
+    mastered:{},                 // rank -> {conf, seen, correct}
+    wordsMastered:0, xp:0, badges:[],
+    lessonsDone:{},              // lessonIdx -> true
+    dailyGoal:5, todayCount:0, todayDate:null,
+    settings:{ arabicSize:'md', translit:true, audio:true }
+  };
+};
+App.prototype.load = function(){
+  try { var s = JSON.parse(localStorage.getItem(STORE_KEY)); if (s) { var d=this.defaults(); for(var k in s) d[k]=s[k]; d.settings=Object.assign(this.defaults().settings, s.settings||{}); return d; } } catch(e){}
+  return this.seedDemo();
+};
+App.prototype.save = function(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(this.data)); } catch(e){} };
+App.prototype.seedDemo = function(){
+  var d=this.defaults();
+  d.onboarded=true; d.streak=3; d.lastDate=todayStr();
+  d.mastered={}; d.wordsMastered=0; d.xp=0; d.lessonsDone={}; d.badges=[];
+  var done=Math.min(SEED_LESSONS_DONE, LESSONS.length);
+  for (var li=0; li<done; li++){
+    var L=LESSONS[li]; d.lessonsDone[L.idx]=true; d.xp+=XP_PER_LESSON;
+    L.words.forEach(function(w){ if(!d.mastered[w.r]){ d.mastered[w.r]={conf:1,seen:1,correct:1}; d.wordsMastered++; d.xp+=XP_PER_WORD; } });
+  }
+  d.todayDate=todayStr(); d.todayCount=0; d.lessonLevel={}; d.simDay=0;
+  return d;
+};
+
+App.prototype.comprehension = function(){ return this.data.wordsMastered / TOTAL_TARGET * PCT_AT_TARGET; };
+App.prototype.currentBand = function(){
+  // first band that still has an unfinished lesson, else last content band
+  for (var b=1;b<=BANDS;b++){ if (bandHasContent(b) && !this.bandComplete(b)) return b; }
+  return Math.min(BANDS, Math.max(1, Math.floor(this.data.wordsMastered / WORDS_PER_BAND)+1));
+};
+App.prototype.bandComplete = function(b){
+  var ls = lessonsInBand(b); if (!ls.length) return false;
+  for (var i=0;i<ls.length;i++){ if (!this.data.lessonsDone[ls[i].idx]) return false; }
+  return true;
+};
+App.prototype.nextLesson = function(){
+  for (var i=0;i<LESSONS.length;i++){ if (!this.data.lessonsDone[LESSONS[i].idx]) return LESSONS[i]; }
+  return null;
+};
+App.prototype.bumpStreak = function(){
+  var t = todayStr();
+  if (this.data.lastDate === t) return;
+  var y = new Date(Date.now()-864e5).toISOString().slice(0,10);
+  this.data.streak = (this.data.lastDate === y) ? this.data.streak + 1 : 1;
+  this.data.lastDate = t; this.save();
+};
+App.prototype.bumpDaily = function(){
+  var t=todayStr();
+  if (this.data.todayDate !== t){ this.data.todayDate = t; this.data.todayCount = 0; }
+  this.data.todayCount++; this.save();
+};
+
+App.prototype.boot = function(){
+  this._girihD = this.starTilePath(64);
+  var pat = $('.patStar', this.root); if (pat) pat.setAttribute('d', this._girihD);
+  var gel = $('.girih', this.root);
+  if (gel){ var svg = "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><path d='"+this._girihD+"' fill='none' stroke='"+ART+"' stroke-width='0.8'/></svg>"; gel.style.backgroundImage = 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")'; }
+  this.buildDeco();
+  this.startCanvas();
+  this.go(this.data.onboarded ? 'home' : 'onboarding');
+};
+
+App.prototype.q = function(s){ return $(s, this.view); };
+App.prototype.qa = function(s){ return $all(s, this.view); };
+App.prototype.arabicPx = function(base){ var m={sm:.82,md:1,lg:1.18}; return Math.round(base*(m[this.data.settings.arabicSize]||1)); };
+
+// ============ AUDIO ============
+App.prototype.playUrl = function(url, btn){
+  if (!this.data.settings.audio || !url) return;
+  try {
+    this.audio.src = url.indexOf('http')===0 ? url : (AUDIO_BASE + url.replace(/^\//,''));
+    var self=this;
+    if (btn){ $all('.spk').forEach(function(s){ s.classList.remove('playing'); }); btn.classList.add('playing'); this.audio.onended=function(){ btn.classList.remove('playing'); }; }
+    var p = this.audio.play(); if (p && p.catch) p.catch(function(){ if(btn) btn.classList.remove('playing'); });
+  } catch(e){}
+};
+// Fetch a verse (words + translation) once; cache. Returns promise of {words:[{ar,audio}], tr, ref}
+App.prototype.fetchVerse = function(s,v){
+  var key = s+":"+v;
+  if (this.verseCache[key]) return Promise.resolve(this.verseCache[key]);
+  var self=this;
+  var url = API+"/verses/by_key/"+key+"?words=true&word_fields=text_uthmani,audio_url&translations="+PICKTHALL+"&fields=text_uthmani";
+  return fetch(url).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
+    var vs = j.verse || {};
+    var words = (vs.words||[]).filter(function(w){ return w.char_type_name!=="end"; }).map(function(w){
+      return { ar:(w.text_uthmani||w.text||""), audio:(w.audio_url||null), pos:w.position };
+    });
+    var tr = "";
+    if (vs.translations && vs.translations[0]) tr = vs.translations[0].text.replace(/<sup[^>]*>.*?<\/sup>/g,"").trim();
+    var obj = { words:words, tr:tr, s:s, v:v };
+    self.verseCache[key]=obj; return obj;
+  });
+};
+
+// Resolve a real verse that contains w as a whole word, preferring a SHORT verse so
+// the ayah is easy to read and the learned word is easy to spot. The matched word's
+// own audio_url is then authoritative for pronunciation. Result cached on w._bv.
+App.prototype.verseLen = function(v){ return (v && v.words) ? v.words.length : 99; };
+App.prototype.bestVerse = function(w){
+  var self=this;
+  if (w._bv) return Promise.resolve(w._bv);
+  if (w._bvP) return w._bvP;
+  var SHORT_MAX=10, MIN_LEN=3;
+  var useRep=function(){
+    return self.fetchVerse(w.s,w.v).then(function(v){
+      var idx=self.findWordIndex(v,w.a);
+      return (idx>=0) ? {verse:v, idx:idx} : null;
+    }).catch(function(){ return null; });
+  };
+  var p = useRep().then(function(rep){
+    if (rep && self.verseLen(rep.verse)<=SHORT_MAX) return rep;
+    // Look for a shorter verse that contains the exact word form.
+    var q=encodeURIComponent(stripDia(w.a));
+    return fetch(API+"/search?q="+q+"&size=15&page=0").then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
+      var results=(j.search && j.search.results) || [];
+      var cands=[];
+      results.forEach(function(rs){
+        var toks=(rs.words||[]).filter(function(x){ return x.char_type!=='end'; });
+        var exact=false, loose=false;
+        for (var i=0;i<toks.length;i++){
+          if (toks[i].text===w.a){ exact=true; break; }
+          if (stripDia(toks[i].text)===stripDia(w.a)) loose=true;
+        }
+        if (exact||loose) cands.push({key:rs.verse_key, len:toks.length, exact:exact?1:0});
+      });
+      // Prefer a verse with the exact vowelled form (so pronunciation matches), then the shortest.
+      cands=cands.filter(function(c){ return c.len>=MIN_LEN; }).sort(function(a,b){ return (b.exact-a.exact) || (a.len-b.len); });
+      if (!cands.length) return rep;
+      var parts=cands[0].key.split(':'), s=+parts[0], v=+parts[1];
+      return self.fetchVerse(s,v).then(function(vv){
+        var idx=self.exactWordIndex(vv,w.a);
+        return (idx>=0) ? {verse:vv, idx:idx} : rep;
+      }).catch(function(){ return rep; });
+    }).catch(function(){ return rep; });
+  }).then(function(res){ if(res) w._bv=res; w._bvP=null; return res; });
+  w._bvP=p; return p;
+};
+
+// ============ ROUTER ============
+App.prototype.go = function(screen, opts){
+  this.screen = screen; this.riseOn=false;
+  if (this._wordTimer){ clearInterval(this._wordTimer); this._wordTimer=null; }
+  if (this.tl){ this.tl.kill(); this.tl=null; }
+  if (this._rvTimer){ clearInterval(this._rvTimer); this._rvTimer=null; }
+  this.reviseActive=false;
+  var showArch = (screen==='onboarding' || screen==='celebrate' || screen==='milestone');
+  $('.arch', this.root).style.opacity = showArch ? '1' : '.32';
+  $('.glow', this.root).style.opacity = showArch ? '1' : '.4';
+  if (screen==='onboarding') this.renderOnboarding(opts && opts.step || 0);
+  else if (screen==='home') this.renderHome();
+  else if (screen==='learn') this.startLesson(opts && opts.lesson);
+  else if (screen==='celebrate') this.renderCelebration();
+  else if (screen==='milestone') this.renderMilestone(opts);
+  else if (screen==='revise') this.renderRevise();
+  else if (screen==='progress') this.renderProgress();
+  else if (screen==='settings') this.renderSettings();
+  this.renderNav();
+};
+App.prototype.renderNav = function(){
+  if (this.reviseActive){ this.nav.style.display='none'; return; }
+  var tabs=['home']; if (this.lessonsCompletedCount && this.lessonsCompletedCount()>0) tabs.push('revise'); tabs.push('progress','settings');
+  var visible = tabs.indexOf(this.screen)>=0;
+  this.nav.style.display = visible ? 'flex' : 'none';
+  if (!visible) return;
+  var icons = {
+    home:'<path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /><path d="M10 20v-6h4v6" />',
+    revise:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /><path d="M12 8v4l3 2" />',
+    progress:'<path d="M4 19V5" /><path d="M4 19h16" /><path d="M8 16v-5" /><path d="M13 16V8" /><path d="M18 16v-8" />',
+    settings:'<circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/>'
+  };
+  var labels={home:'Learn',revise:'Revise',progress:'Progress',settings:'Settings'};
+  var self=this;
+  this.nav.innerHTML = tabs.map(function(t){
+    var on=t===self.screen; var col=on?'#eccb73':'rgba(243,233,207,.42)';
+    return '<button data-tab="'+t+'" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 12px;">'
+      +'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+icons[t]+'</svg>'
+      +'<span style="font-family:Poppins;font-size:10px;letter-spacing:.06em;color:'+col+';'+(on?'text-shadow:0 0 12px rgba(231,194,108,.5);':'')+'">'+labels[t]+'</span></button>';
+  }).join('');
+  $all('[data-tab]', this.nav).forEach(function(b){ b.onclick=function(){ self.go(b.dataset.tab); }; });
+};
+
+// ============ ONBOARDING ============
+App.prototype.renderOnboarding = function(step){
+  var self=this;
+  var dots = function(n){ return [0,1,2].map(function(i){ return '<span style="width:'+(i===n?22:7)+'px;height:7px;border-radius:999px;background:'+(i===n?'#eccb73':'rgba(216,180,92,.3)')+';transition:all .3s;"></span>'; }).join(''); };
+  var slides = [
+    '<div class="ay-fade" style="text-align:center;display:flex;flex-direction:column;align-items:center;">'
+      +'<div style="font-family:\'Scheherazade New\',serif;font-size:74px;line-height:.9;color:#eccb73;text-shadow:0 0 24px rgba(231,194,108,.6);">آية</div>'
+      +'<div style="margin-top:8px;font-family:Poppins;font-size:30px;letter-spacing:.34em;font-weight:600;color:#eccb73;padding-left:.34em;text-shadow:0 0 14px rgba(231,194,108,.4);">AYAH</div>'
+      +'<p style="margin:26px 0 0;max-width:264px;font-size:22px;line-height:1.4;color:rgba(243,233,207,.86);">Understand the words of the Quran, one verse at a time.</p>'
+      +'<p style="margin:12px 0 0;max-width:248px;font-family:Poppins;font-size:13px;line-height:1.6;color:rgba(243,233,207,.55);">A gentle, daily practice for those who can read Arabic but long to understand it.</p>'
+    +'</div>',
+    '<div class="ay-fade" style="text-align:center;display:flex;flex-direction:column;align-items:center;">'
+      +'<div style="font-family:Poppins;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#dbb964;">The hidden shortcut</div>'
+      +'<div style="margin-top:18px;font-size:82px;font-weight:700;line-height:1;color:#fbeeb8;text-shadow:0 0 30px rgba(231,194,108,.5);">75%</div>'
+      +'<p style="margin:14px 0 0;max-width:268px;font-size:21px;line-height:1.35;color:rgba(243,233,207,.9);">Just the <b style="color:#eccb73">500 most common words</b> make up about three quarters of the entire Quran.</p>'
+      +'<div style="margin-top:26px;width:100%;max-width:280px;">'
+        +'<div style="display:flex;justify-content:space-between;font-family:Poppins;font-size:11px;color:rgba(243,233,207,.5);margin-bottom:6px;"><span>Words you learn</span><span>Quran you understand</span></div>'
+        +'<div style="height:11px;border-radius:999px;background:#0d1838;overflow:hidden;border:1px solid rgba(216,180,92,.25);"><div class="ob-bar" style="height:100%;width:0;background:linear-gradient(90deg,#d8b45c,#fbeeb8);border-radius:999px;transition:width 1.1s cubic-bezier(.16,1,.3,1);"></div></div>'
+      +'</div>'
+      +'<p style="margin:18px 0 0;max-width:250px;font-family:Poppins;font-size:12.5px;line-height:1.6;color:rgba(243,233,207,.55);">Master a small, high-frequency vocabulary and comprehension unlocks far faster than you would expect.</p>'
+    +'</div>',
+    '<div class="ay-fade" style="text-align:center;display:flex;flex-direction:column;align-items:center;width:100%;">'
+      +'<div style="font-family:Poppins;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#dbb964;">How it works</div>'
+      +'<div style="margin-top:20px;display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;text-align:left;">'
+      +[['Meet','See the word, its meaning and root.'],['Recall','Reveal the meaning from memory.'],['Match','Pick the right Arabic, then the right English.'],['Place','Complete a real verse in context.']].map(function(s,i){
+        return '<div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.03);border:1px solid rgba(216,180,92,.2);border-radius:14px;padding:12px 14px;">'
+          +'<div style="flex:0 0 auto;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Poppins;font-weight:600;font-size:15px;color:#1a1206;background:linear-gradient(180deg,#fbeeb8,#d8b45c);">'+(i+1)+'</div>'
+          +'<div><div style="font-size:19px;font-weight:600;color:#f3e9cf;">'+s[0]+'</div><div style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.55);line-height:1.4;">'+s[1]+'</div></div></div>';
+      }).join('')
+      +'</div>'
+      +'<p style="margin:18px 0 0;max-width:250px;font-size:17px;font-style:italic;color:rgba(243,233,207,.7);">Each word you master is celebrated. Wrong answers simply come back around.</p>'
+    +'</div>'
+  ];
+  var last = step===2;
+  this.view.innerHTML =
+    '<div style="flex:1;display:flex;flex-direction:column;padding:64px 34px 0;">'
+      +'<div style="flex:1;display:flex;align-items:center;justify-content:center;">'+slides[step]+'</div>'
+      +'<div style="flex:0 0 auto;padding:18px 0 34px;display:flex;flex-direction:column;align-items:center;gap:20px;">'
+        +'<div style="display:flex;gap:7px;align-items:center;">'+dots(step)+'</div>'
+        +'<div style="width:100%;max-width:300px;">'
+          +'<button class="ay-cta" id="obNext"><span style="position:relative;z-index:2;">'+(last?'Begin learning':'Continue')+' &rarr;</span><span class="sh"></span></button>'
+          +(step===0?'<button class="ay-ghost" id="obSkip" style="margin-top:10px;">Skip intro</button>':'')
+        +'</div></div></div>';
+  if (step===1) setTimeout(function(){ var b=self.q('.ob-bar'); if(b) b.style.width='75%'; }, 180);
+  this.q('#obNext').onclick = function(){ if (last){ self.data.onboarded=true; self.save(); self.go('home'); } else self.go('onboarding',{step:step+1}); };
+  var sk = this.q('#obSkip'); if (sk) sk.onclick = function(){ self.data.onboarded=true; self.save(); self.go('home'); };
+};
+
+// ============ HOME (milestone map) ============
+App.prototype.greeting = function(){ var h=new Date().getHours(); return h<5?'Peaceful night':h<12?'Good morning':h<17?'Good afternoon':h<21?'Good evening':'Peaceful night'; };
+App.prototype.renderHome = function(){
+  var self=this;
+  var pct = this.comprehension();
+  var nl = this.nextLesson();
+  var curBand = this.currentBand();
+  // milestone ladder, top band 15 -> bottom band 1
+  var rows = '';
+  for (var b=BANDS;b>=1;b--){
+    var has = bandHasContent(b);
+    var done = this.bandComplete(b);
+    var active = b===curBand;
+    var ls = lessonsInBand(b);
+    var doneCount = ls.filter(function(l){ return self.data.lessonsDone[l.idx]; }).length;
+    var remaining = ls.length - doneCount;
+    var pctLabel = (b*5)+'%';
+    var circleBg, circleColor, edge, opacity='1', sub;
+    if (done){ circleBg='linear-gradient(180deg,#fbeeb8,#d8b45c)'; circleColor='#1a1206'; edge='rgba(120,217,160,.5)'; sub='Complete'; }
+    else if (active){ circleBg='linear-gradient(180deg,#fbeeb8,#d8b45c)'; circleColor='#1a1206'; edge='rgba(216,180,92,.7)'; sub=remaining+' lesson'+(remaining===1?'':'s')+' to go'; }
+    else if (has){ circleBg='rgba(216,180,92,.12)'; circleColor='#eccb73'; edge='rgba(216,180,92,.3)'; sub='Locked until '+( (b*5)-5 )+'%'; opacity='.7'; }
+    else { circleBg='rgba(216,180,92,.08)'; circleColor='rgba(243,233,207,.4)'; edge='rgba(216,180,92,.12)'; sub='Coming soon'; opacity='.5'; }
+    var icon = done ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1206" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>'
+              : (has ? '<span style="font-family:Poppins;font-weight:700;font-size:13px;">'+pctLabel+'</span>'
+              : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(243,233,207,.4)" stroke-width="1.8"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>');
+    var connector = b>1 ? '<div style="position:absolute;left:31px;top:52px;width:2px;height:18px;background:'+(done?'linear-gradient(#78d9a0,#d8b45c)':'rgba(216,180,92,.18)')+';"></div>' : '';
+    rows += '<div data-band="'+b+'" style="position:relative;display:flex;align-items:center;gap:14px;padding:6px 4px;opacity:'+opacity+';'+(active?'cursor:pointer;':(has&&!done?'':'cursor:default;'))+'">'
+      + connector
+      +'<div style="flex:0 0 auto;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:'+circleColor+';background:'+circleBg+';border:1px solid '+edge+';box-shadow:'+((done||active)?'0 4px 16px rgba(216,180,92,.3)':'none')+';">'+icon+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="display:flex;align-items:baseline;gap:8px;"><span style="font-size:17px;font-weight:600;color:'+(has?'#f3e9cf':'rgba(243,233,207,.5)')+';">Milestone '+b+'</span><span style="font-family:Poppins;font-size:10.5px;color:rgba(243,233,207,.45);">'+((b-1)*5)+'% &rarr; '+(b*5)+'%</span></div>'
+        +'<div style="font-family:Poppins;font-size:11.5px;color:'+(active?'#eccb73':'rgba(243,233,207,.5)')+';margin-top:2px;">'+sub+'</div>'
+      +'</div>'
+      + (active?'<div style="flex:0 0 auto;color:#eccb73;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#eccb73" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>':'')
+      +'</div>';
+  }
+  var goalPct = Math.min(100, this.data.todayDate===todayStr() ? (this.data.todayCount/this.data.dailyGoal*100) : 0);
+  var todayN = this.data.todayDate===todayStr() ? this.data.todayCount : 0;
+  this.view.innerHTML =
+    '<div class="ay-fade" style="flex:1;display:flex;flex-direction:column;padding:46px 22px 18px;">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;">'
+        +'<div><div style="font-family:Poppins;font-size:12px;letter-spacing:.04em;color:rgba(243,233,207,.55);">'+this.greeting()+'</div>'
+        +'<div style="font-size:26px;font-weight:600;color:#f3e9cf;margin-top:2px;">Your journey to 75%</div></div>'
+        +'<div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 12px;border:1px solid rgba(216,180,92,.3);border-radius:14px;background:rgba(216,180,92,.06);">'
+          +'<div style="font-size:20px;line-height:1;">&#128293;</div>'
+          +'<div style="font-family:Poppins;font-weight:700;font-size:16px;color:#eccb73;">'+this.data.streak+'</div>'
+          +'<div style="font-family:Poppins;font-size:8.5px;letter-spacing:.08em;color:rgba(243,233,207,.5);">DAY'+(this.data.streak===1?'':'S')+'</div>'
+        +'</div></div>'
+
+      +'<div style="margin-top:16px;border-radius:18px;border:1px solid rgba(216,180,92,.32);background:linear-gradient(135deg,rgba(29,48,104,.5),rgba(10,21,56,.5));padding:16px 18px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-family:Poppins;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#dbb964;">Comprehension</span>'
+        +'<span style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.6);">'+this.data.wordsMastered+' words mastered</span></div>'
+        +'<div style="display:flex;align-items:flex-end;gap:10px;margin-top:4px;"><span style="font-size:40px;font-weight:700;color:#fbeeb8;font-family:Poppins;line-height:1;text-shadow:0 0 20px rgba(231,194,108,.4);">'+pct.toFixed(1)+'%</span><span style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.5);padding-bottom:5px;">of 75% goal</span></div>'
+        +'<div style="margin-top:12px;height:9px;border-radius:999px;background:#0d1838;overflow:hidden;border:1px solid rgba(216,180,92,.2);"><div style="height:100%;width:'+(pct/PCT_AT_TARGET*100)+'%;background:linear-gradient(90deg,#d8b45c,#fbeeb8);border-radius:999px;transition:width .8s;"></div></div>'
+      +'</div>'
+
+      + (nl ?
+        '<div style="margin-top:14px;border-radius:18px;border:1px solid rgba(216,180,92,.32);background:rgba(255,255,255,.04);padding:16px 18px;">'
+        +'<div style="font-family:Poppins;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#dbb964;">Today\'s lesson</div>'
+        +'<div style="margin-top:6px;font-size:21px;font-weight:600;color:#fbeeb8;">Milestone '+nl.band+' &middot; Lesson '+(nl.idx+1)+'</div>'
+        +'<div style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.55);margin-top:2px;">'+nl.words.length+' words &middot; about 5 minutes</div>'
+        +'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">'+nl.words.slice(0,6).map(function(w){ return '<span style="font-family:\'Scheherazade New\',serif;font-size:19px;color:#eccb73;direction:rtl;background:rgba(216,180,92,.07);border:1px solid rgba(216,180,92,.18);border-radius:8px;padding:1px 9px;">'+w.a+'</span>'; }).join('')+'</div>'
+        +'<button class="ay-cta" id="homeStart" style="margin-top:14px;"><span style="position:relative;z-index:2;">Start today\'s lesson &rarr;</span><span class="sh"></span></button>'
+        +'<div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;"><span style="font-family:Poppins;font-size:11px;color:rgba(243,233,207,.55);">Daily goal</span><span style="font-family:Poppins;font-size:11px;color:#eccb73;">'+todayN+' / '+this.data.dailyGoal+' words</span></div>'
+        +'<div style="margin-top:5px;height:6px;border-radius:999px;background:#0d1838;overflow:hidden;"><div style="height:100%;width:'+goalPct+'%;background:linear-gradient(90deg,#50bb80,#78d9a0);border-radius:999px;"></div></div>'
+        +'</div>'
+        :
+        '<div style="margin-top:14px;border-radius:18px;border:1px solid rgba(120,217,160,.3);background:rgba(120,217,160,.06);padding:18px;text-align:center;">'
+        +'<div style="font-size:19px;font-weight:600;color:#9be3b8;">Every lesson in this release is complete.</div>'
+        +'<div style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.6);margin-top:6px;line-height:1.6;">You have mastered the high-frequency core. More milestones toward the full 75% are on the way.</div>'
+        +'<button class="ay-ghost" id="homeReview" style="margin-top:14px;">Review a past lesson</button>'
+        +'</div>')
+
+      + this.practiceCard()
+      +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(243,233,207,.45);margin:24px 0 6px;">The 15 milestones</div>'
+      +'<div style="display:flex;flex-direction:column;gap:2px;">'+rows+'</div>'
+
+      +'<div style="text-align:center;margin-top:20px;padding-top:8px;opacity:.4;"><div style="font-family:\'Scheherazade New\',serif;font-size:20px;color:#c9a24a;">آية</div></div>'
+    +'</div>';
+  var hs=this.q('#homeStart'); if (hs) hs.onclick=function(){ self.go('learn',{lesson:nl}); };
+  var hr=this.q('#homeReview'); if (hr) hr.onclick=function(){ self.go('learn',{lesson:LESSONS[0]}); };
+  var ps=this.q('#prStart'); if(ps) ps.onclick=function(){ self.startPractice(); };
+  var pst=this.q('#prStrong'); if(pst) pst.onclick=function(){ self.strengthenLesson(); };
+  var psm=this.q('#prSim'); if(psm) psm.onclick=function(){ self.data.simDay=(self.data.simDay||0)+1; self.save(); self.renderHome(); };
+  $all('[data-band]', this.view).forEach(function(el){
+    var b=+el.dataset.band;
+    if (b===self.currentBand()){ el.onclick=function(){ var l=self.nextLesson(); if(l) self.go('learn',{lesson:l}); }; }
+  });
+};
+
+// ============ PROGRESS ============
+App.prototype.renderProgress = function(){
+  var self=this;
+  var pct=this.comprehension();
+  var week=['M','T','W','T','F','S','S'];
+  var todayIdx=(new Date().getDay()+6)%7;
+  var timeline=week.map(function(d,i){
+    var active=self.data.streak>0 && i<=todayIdx && i>todayIdx-self.data.streak;
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;">'
+      +'<div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;background:'+(active?'linear-gradient(180deg,#fbeeb8,#d8b45c)':'rgba(255,255,255,.04)')+';border:1px solid '+(active?'transparent':'rgba(216,180,92,.18)')+';">'+(active?'&#128293;':'')+'</div>'
+      +'<div style="font-family:Poppins;font-size:10px;color:'+(i===todayIdx?'#eccb73':'rgba(243,233,207,.4)')+';">'+d+'</div></div>';
+  }).join('');
+  var lvl = Math.floor(this.data.xp/200)+1;
+  var lvlPct = (this.data.xp%200)/200*100;
+  // badges row (one per milestone)
+  var badges='';
+  for (var b=1;b<=BANDS;b++){
+    var earned=this.data.badges.indexOf(b)>=0;
+    badges += '<div title="Milestone '+b+'" style="flex:0 0 auto;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Poppins;font-weight:700;font-size:12px;'
+      +(earned?'color:#1a1206;background:linear-gradient(180deg,#fbeeb8,#d8b45c);box-shadow:0 3px 12px rgba(216,180,92,.35);':'color:rgba(243,233,207,.3);background:rgba(255,255,255,.03);border:1px solid rgba(216,180,92,.15);')+'">'+(earned?(b*5)+'%':'&#9679;')+'</div>';
+  }
+  this.view.innerHTML =
+    '<div class="ay-fade" style="flex:1;display:flex;flex-direction:column;padding:48px 24px 18px;">'
+      +'<div style="font-size:27px;font-weight:600;color:#f3e9cf;">Your progress</div>'
+      +'<div style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.5);margin-top:2px;">Every word brings the meaning closer.</div>'
+      +'<div style="display:flex;gap:11px;margin-top:20px;">'
+      +[['&#128293;',this.data.streak,'day streak'],['&#128214;',this.data.wordsMastered,'words mastered'],['&#10022;',pct.toFixed(1)+'%','of the Quran']].map(function(s){
+        return '<div style="flex:1;text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(216,180,92,.2);border-radius:14px;padding:14px 6px;"><div style="font-size:18px;">'+s[0]+'</div><div style="font-family:Poppins;font-weight:700;font-size:20px;color:#fbeeb8;margin-top:4px;">'+s[1]+'</div><div style="font-family:Poppins;font-size:9.5px;color:rgba(243,233,207,.5);margin-top:2px;">'+s[2]+'</div></div>';
+      }).join('')
+      +'</div>'
+      +'<div style="margin-top:18px;border:1px solid rgba(216,180,92,.2);border-radius:16px;background:rgba(255,255,255,.025);padding:16px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-family:Poppins;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#dbb964;">Level '+lvl+'</span><span style="font-family:Poppins;font-size:11px;color:rgba(243,233,207,.55);">'+this.data.xp+' XP</span></div>'
+        +'<div style="margin-top:8px;height:8px;border-radius:999px;background:#0d1838;overflow:hidden;"><div style="height:100%;width:'+lvlPct+'%;background:linear-gradient(90deg,#d8b45c,#fbeeb8);border-radius:999px;"></div></div>'
+      +'</div>'
+      +'<div style="margin-top:18px;border:1px solid rgba(216,180,92,.2);border-radius:16px;background:rgba(255,255,255,.025);padding:16px;">'
+        +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#dbb964;">This week</div>'
+        +'<div style="display:flex;margin-top:14px;">'+timeline+'</div>'
+      +'</div>'
+      +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(243,233,207,.45);margin:20px 0 12px;">Milestone badges</div>'
+      +'<div style="display:flex;gap:9px;flex-wrap:wrap;">'+badges+'</div>'
+      +'<div style="margin-top:22px;text-align:center;border:1px dashed rgba(216,180,92,.25);border-radius:16px;padding:18px;">'
+        +'<div style="font-size:18px;font-style:italic;color:rgba(243,233,207,.75);max-width:260px;margin:0 auto;line-height:1.4;">"The best of you are those who learn the Quran and teach it."</div>'
+      +'</div>'
+    +'</div>';
+};
+
+// ============ SETTINGS ============
+App.prototype.renderSettings = function(){
+  var self=this; var st=this.data.settings;
+  var seg=function(key,opts,val){ return '<div style="display:flex;gap:6px;background:#0d1838;border-radius:12px;padding:4px;">'+opts.map(function(o){ return '<button data-seg="'+key+'" data-val="'+o.v+'" style="flex:1;font-family:Poppins;font-size:13px;font-weight:500;padding:8px 0;border:none;border-radius:9px;cursor:pointer;color:'+(val===o.v?'#1a1206':'rgba(243,233,207,.6)')+';background:'+(val===o.v?'linear-gradient(180deg,#fbeeb8,#d8b45c)':'transparent')+';">'+o.l+'</button>'; }).join('')+'</div>'; };
+  var toggle=function(key,on){ return '<button data-toggle="'+key+'" style="width:50px;height:28px;border-radius:999px;border:none;cursor:pointer;position:relative;background:'+(on?'linear-gradient(90deg,#d8b45c,#fbeeb8)':'#0d1838')+';transition:background .25s;"><span style="position:absolute;top:3px;left:'+(on?25:3)+'px;width:22px;height:22px;border-radius:50%;background:'+(on?'#1a1206':'rgba(243,233,207,.6)')+';transition:left .22s;"></span></button>'; };
+  var row=function(title,sub,control){ return '<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 16px;border-bottom:1px solid rgba(216,180,92,.12);"><div><div style="font-size:18px;color:#f3e9cf;">'+title+'</div><div style="font-family:Poppins;font-size:11.5px;color:rgba(243,233,207,.5);margin-top:1px;">'+sub+'</div></div><div style="flex:0 0 auto;">'+control+'</div></div>'; };
+  this.view.innerHTML =
+    '<div class="ay-fade" style="flex:1;display:flex;flex-direction:column;padding:48px 24px 18px;">'
+      +'<div style="font-size:27px;font-weight:600;color:#f3e9cf;">Settings</div>'
+      +'<div style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.5);margin-top:2px;">Tune the experience to suit you.</div>'
+      +'<div style="margin-top:22px;border:1px solid rgba(216,180,92,.2);border-radius:16px;background:rgba(255,255,255,.025);overflow:hidden;">'
+        +'<div style="padding:15px 16px 12px;border-bottom:1px solid rgba(216,180,92,.12);">'
+          +'<div style="font-size:18px;color:#f3e9cf;">Arabic text size</div>'
+          +'<div style="font-family:Poppins;font-size:11.5px;color:rgba(243,233,207,.5);margin:1px 0 12px;">Larger text for easier reading.</div>'
+          +seg('arabicSize',[{v:'sm',l:'Small'},{v:'md',l:'Medium'},{v:'lg',l:'Large'}],st.arabicSize)
+          +'<div style="text-align:center;margin-top:14px;font-family:\'Scheherazade New\',serif;color:#eccb73;font-size:'+(st.arabicSize==='sm'?40:st.arabicSize==='lg'?64:52)+'px;">ٱلْحَمْدُ</div>'
+        +'</div>'
+        +'<div style="padding:15px 16px 12px;border-bottom:1px solid rgba(216,180,92,.12);">'
+          +'<div style="font-size:18px;color:#f3e9cf;">Daily goal</div>'
+          +'<div style="font-family:Poppins;font-size:11.5px;color:rgba(243,233,207,.5);margin:1px 0 12px;">Words to learn each day.</div>'
+          +seg('dailyGoal',[{v:3,l:'3'},{v:5,l:'5'},{v:8,l:'8'},{v:12,l:'12'}],st.dailyGoal!==undefined?this.data.dailyGoal:5)
+        +'</div>'
+        +row('Transliteration','Show romanized pronunciation.', toggle('translit', st.translit))
+        +row('Pronunciation audio','Tap a word to hear it spoken.', toggle('audio', st.audio))
+      +'</div>'
+      +'<button class="ay-ghost" id="setReset" style="margin-top:22px;color:#cc7a7a;border-color:rgba(204,122,122,.4);">Reset all progress</button>'
+      +'<div style="text-align:center;margin-top:18px;font-family:Poppins;font-size:10.5px;color:rgba(243,233,207,.4);line-height:1.7;">Verse text and translation: Pickthall (public domain) via Quran.com.<br>Word audio: Quran.com word-by-word recitation.<br>Frequency and morphology: Quranic Arabic Corpus.</div>'
+      +'<div style="text-align:center;margin-top:10px;font-family:Poppins;font-size:11px;color:rgba(243,233,207,.35);">Ayah &middot; learning prototype</div>'
+    +'</div>';
+  $all('[data-seg]', this.view).forEach(function(b){ b.onclick=function(){ var k=b.dataset.seg, v=b.dataset.val; if(k==='dailyGoal'){ self.data.dailyGoal=+v; } else { self.data.settings[k]=v; } self.save(); self.renderSettings(); }; });
+  $all('[data-toggle]', this.view).forEach(function(b){ b.onclick=function(){ var k=b.dataset.toggle; self.data.settings[k]=!self.data.settings[k]; self.save(); self.renderSettings(); }; });
+  this.q('#setReset').onclick=function(){ if(confirm('Reset all progress and start over?')){ self.data=self.defaults(); self.save(); self.go('onboarding'); } };
+};
+// ============ LEARNING LOOP ============
+function pad3(n){ n=String(n); return n.length>=3?n:('000'+n).slice(-3); }
+App.prototype.findWordIndex = function(verse, targetAr){
+  // Exact (diacritic-insensitive) whole-word match only. A loose prefix match used
+  // to return the wrong word, which is why some audio clips did not match the word.
+  if (!verse || !verse.words) return -1;
+  var t = stripDia(targetAr);
+  for (var i=0;i<verse.words.length;i++){ if (stripDia(verse.words[i].ar)===t){ return i; } }
+  return -1;
+};
+App.prototype.exactWordIndex = function(verse, targetAr){
+  // Prefer the exact vowelled form so the chosen word's audio matches the taught form;
+  // fall back to the diacritic-insensitive match otherwise.
+  if (!verse || !verse.words) return -1;
+  for (var i=0;i<verse.words.length;i++){ if (verse.words[i].ar===targetAr){ return i; } }
+  return this.findWordIndex(verse, targetAr);
+};
+App.prototype.wordAudio = function(w, verse){
+  // Only ever return the verse's own authoritative per-word audio_url for an exact
+  // match. Never build a URL from the word position: Quran.com audio file numbers do
+  // not equal word positions, so that produced the wrong recitation.
+  if (verse){ var i=this.findWordIndex(verse, w.a); if (i>=0 && verse.words[i].audio) return verse.words[i].audio; }
+  return null;
+};
+
+App.prototype.startLesson = function(lesson){
+  var self=this;
+  if (!lesson) lesson=this.nextLesson()||LESSONS[0];
+  this.lesson=lesson;
+  this.lwords=lesson.words.slice();
+  this.queue=[];
+  this.lessonLvl=this.lessonLevelOf(lesson.idx); this.STAGES=this.stagesForLevel(this.lessonLvl);
+  this.lwords.forEach(function(w,wi){ self.STAGES.forEach(function(st){ self.queue.push({wi:wi,stage:st,isRetry:false}); }); });
+  this.lphase='learn'; this._celebrated=false; this.learned=0; this.sessionCorrect=0; this.sessionLearnedRanks=[]; this.fillIdx=0; this.ayahShown=false; this._learnedWi={}; this.combo=0; this.bestCombo=0; this.lessonMissed={};
+  // prefetch verses for the lesson words (live enrichment)
+  this.lwords.forEach(function(w){ self.fetchVerse(w.s,w.v).catch(function(){}); });
+  this.renderLearnChrome();
+  this.runLessonIntro();
+};
+App.prototype.renderLearnChrome = function(){
+  var self=this;
+  this.view.innerHTML =
+    '<div style="flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:42px 26px 8px;">'
+      +'<button id="lnClose" style="background:none;border:none;cursor:pointer;color:rgba(243,233,207,.5);padding:0;display:flex;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+      +'<div style="flex:1;height:7px;background:#0d1838;border-radius:999px;overflow:hidden;"><div id="lnFill" style="height:100%;width:0;background:linear-gradient(90deg,#d8b45c,#fbeeb8);border-radius:999px;transition:width .6s cubic-bezier(.16,1,.3,1);"></div></div>'
+      +'<div id="lnCount" style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.5);min-width:34px;text-align:right;"></div>'
+    +'</div>'
+    +'<div id="lnLabel" style="flex:0 0 auto;text-align:center;font-family:Poppins;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(243,233,207,.4);padding:6px 0 2px;"></div>'
+    +'<div id="lnCombo" style="opacity:0;transition:opacity .2s;text-align:center;font-family:Poppins;font-size:12px;color:#fbeeb8;padding:0 0 2px;"></div>'
+    +'<div id="lnStage" class="ay-scroll" style="flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 24px 24px;overflow-y:auto;position:relative;"></div>';
+  this.q('#lnClose').onclick=function(){ if(confirm('Stop here? Your progress so far is saved.')){ self.save(); self.go('home'); } };
+};
+App.prototype.setProgress = function(){
+  var total=this.lwords.length*((this.STAGES&&this.STAGES.length)||1);
+  var remaining=this.queue.filter(function(q){return !q.isRetry;}).length;
+  var pct;
+  if (this.lphase==='learn') pct=((total-remaining)/total)*58;
+  else if (this.lphase==='pairs') pct=62;
+  else if (this.lphase==='ayah') pct=68;
+  else if (this.lphase==='build') pct=72;
+  else if (this.lphase==='fill') pct=76+(this.fillIdx/Math.max(1,this.fills?this.fills.length:1))*6;
+  else if (this.lphase==='mastercheck') pct=84+(Object.keys(this.mcDone||{}).length/Math.max(1,this.mcTotal||1))*10;
+  else if (this.lphase==='summary') pct=97;
+  else pct=100;
+  var f=this.q('#lnFill'); if(f) f.style.width=Math.min(100,Math.max(0,pct))+'%';
+  var c=this.q('#lnCount'); if(c) c.textContent=this.lphase==='learn'?this.learned+'/'+this.lwords.length:(this.lphase==='done'?'✓':'•');
+};
+App.prototype.paint = function(html,label){
+  var s=this.q('#lnStage'); if(!s) return; s.innerHTML=html; s.scrollTop=0;
+  var p=s.firstElementChild; if(p) p.classList.add('ay-fade');
+  this.q('#lnLabel').textContent=label||'';
+  this.setProgress();
+};
+App.prototype.next = function(){
+  if (this.lphase==='learn') return this.runQueued();
+  if (this.lphase==='pairs') return this.runPairs();
+  if (this.lphase==='ayah') return this.runAyah();
+  if (this.lphase==='build') return this.runBuild();
+  if (this.lphase==='fill') return this.runFill();
+  if (this.lphase==='mastercheck') return this.runMasterCheck();
+  if (this.lphase==='summary') return this.runSummary();
+  return this.celebrate();
+};
+App.prototype.runQueued = function(){
+  if (this.screen!=='learn') return;
+  if (this.queue.length===0){ this.lphase='pairs'; return this.next(); }
+  var item=this.queue.shift(); var w=this.lwords[item.wi];
+  var rb = item.isRetry ? '<div style="width:100%;max-width:340px;background:rgba(216,180,92,.08);border:1px solid rgba(216,180,92,.25);border-radius:10px;padding:8px 14px;font-family:Poppins;font-size:12px;color:#eccb73;text-align:center;margin-bottom:12px;">&#8617; Reviewing <span style="font-family:\'Scheherazade New\',serif;font-size:18px;">'+w.a+'</span></div>' : '';
+  if (item.stage==='introduce') return this.scIntroduce(w);
+  if (item.stage==='recall') return this.scRecall(w,rb);
+  if (item.stage==='pickAr') return this.scPickAr(w,rb);
+  if (item.stage==='pickEn') return this.scPickEn(w,rb);
+  if (item.stage==='listen') return this.scListen(w,rb);
+  if (item.stage==='type') return this.scType(w,rb);
+};
+App.prototype.scheduleRetry = function(wi){
+  this.queue=this.queue.filter(function(q){ return !(q.wi===wi && q.isRetry); });
+  var at=Math.min(this.queue.length, 2+Math.floor(Math.random()*2));
+  this.queue.splice(at,0,{wi:wi,stage:'recall',isRetry:true},{wi:wi,stage:'pickEn',isRetry:true});
+};
+App.prototype.afterCorrect = function(wi){
+  if (this.screen!=='learn') return;
+  var w=this.lwords[wi];
+  this.sessionCorrect++;
+  var remaining=this.queue.filter(function(q){ return q.wi===wi && !q.isRetry; });
+  if (remaining.length===0){
+    var self=this;
+    // Each word is counted and celebrated at most once per lesson. A re-queued retry
+    // that is later answered correctly is a review, not a new completion, so the
+    // "learned" count can never exceed the number of words in the lesson.
+    if (this._learnedWi && this._learnedWi[wi]) return this.next();
+    (this._learnedWi=this._learnedWi||{})[wi]=true;
+    this.learned++;
+    if (!this.data.mastered[w.r]){
+      this.data.mastered[w.r]={conf:1,seen:1,correct:1};
+      this.data.wordsMastered++;
+      this.data.xp+=XP_PER_WORD;
+      this.sessionLearnedRanks.push(w.r);
+      this.bumpDaily();
+      this.save();
+    }
+    this.wordCelebrate(w, function(){ self.next(); });
+  } else this.next();
+};
+App.prototype.distractors = function(field, w, n){
+  var pool=this.lwords.filter(function(x){ return x[field]!==w[field]; });
+  if (pool.length<n) pool=pool.concat(VOCAB.filter(function(x){ return x[field]!==w[field] && pool.indexOf(x)<0; }));
+  return shuffle(pool).slice(0,n);
+};
+App.prototype.speakerBtn = function(){ return '<button class="spk" data-spk="1" aria-label="Play pronunciation"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#eccb73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg></button>'; };
+App.prototype.wireSpeaker = function(w){
+  var self=this; var btn=this.q('[data-spk]'); if(!btn) return;
+  var fire=function(){ self.bestVerse(w).then(function(r){ if(r && r.verse.words[r.idx] && r.verse.words[r.idx].audio) self.playUrl(r.verse.words[r.idx].audio, btn); }); };
+  btn.onclick=fire;
+  this.bestVerse(w); // warm the cache so the first tap is instant
+  return fire;
+};
+
+App.prototype.scIntroduce = function(w){
+  var self=this;
+  var rootChip = w.rt ? '<button id="rootChip" style="display:inline-flex;align-items:center;gap:9px;background:rgba(216,180,92,.08);border:1px solid rgba(216,180,92,.25);border-radius:999px;padding:7px 14px;margin-top:14px;cursor:pointer;"><span style="font-family:Poppins;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.5);">Root</span><span style="font-family:\'Scheherazade New\',serif;font-size:24px;color:#eccb73;direction:rtl;letter-spacing:6px;">'+w.rt+'</span><span style="font-family:Poppins;font-size:10px;color:#9be3b8;">family &rsaquo;</span></button>' : '';
+  this.paint('<div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:40px;">'
+    +'<div style="font-family:\'Scheherazade New\',serif;font-size:'+this.arabicPx(70)+'px;color:#eccb73;direction:rtl;font-weight:700;line-height:1.4;text-shadow:0 0 30px rgba(231,194,108,.4);text-align:center;">'+w.a+'</div>'
+    +'<div style="margin-top:14px;">'+this.speakerBtn()+'</div>'
+    +(this.data.settings.translit?'<div style="font-size:18px;font-style:italic;color:#dbb964;letter-spacing:.4px;margin-top:14px;">'+w.t+'</div>':'')
+    +'<div style="font-size:27px;font-weight:600;color:#f3e9cf;line-height:1.3;margin-top:12px;">'+w.e+'</div>'
+    +'<div style="font-family:Poppins;font-size:12.5px;color:rgba(243,233,207,.5);line-height:1.7;max-width:260px;margin-top:8px;">Appears about <b style="color:#eccb73;">'+w.f+'</b> times in the Quran</div>'
+    +rootChip
+    +'<button class="ay-cta" id="gotit" style="margin-top:26px;max-width:300px;"><span style="position:relative;z-index:2;">Got it &rarr;</span><span class="sh"></span></button>'
+  +'</div>', 'New word');
+  var fire=this.wireSpeaker(w);
+  var rc=this.q('#rootChip'); if(rc) rc.onclick=function(){ self.rootFamily(w); };
+  this.q('#gotit').onclick=function(){ self.next(); };
+  // Play only once the correct audio has resolved (no fixed-timer race against the fetch).
+  if (this.data.settings.audio){ this.bestVerse(w).then(function(){ if(self.screen==='learn' && fire) fire(); }); }
+};
+App.prototype.scRecall = function(w,rb){
+  rb=rb||'';
+  var self=this;
+  var rootBack = w.rt ? '<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(120,217,160,.08);border:1px solid rgba(120,217,160,.25);border-radius:999px;padding:6px 12px;margin-top:10px;"><span style="font-family:Poppins;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(243,233,207,.5);">Root</span><span style="font-family:\'Scheherazade New\',serif;font-size:20px;color:#9be3b8;direction:rtl;letter-spacing:5px;">'+w.rt+'</span></div>' : '';
+  this.paint('<div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;">'+rb
+    +'<div id="card" style="position:relative;width:100%;height:300px;border-radius:26px;flex-shrink:0;">'
+      +'<div id="frontBg" style="position:absolute;inset:0;border-radius:26px;background:linear-gradient(145deg,#152448,#1d3068);border:1px solid rgba(216,180,92,.3);box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);opacity:1;"></div>'
+      +'<div id="backBg" style="position:absolute;inset:0;border-radius:26px;background:linear-gradient(145deg,#11281f,#173524);border:1px solid rgba(120,217,160,.3);box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);opacity:0;"></div>'
+      +'<div id="front" style="position:absolute;inset:0;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;text-align:center;">'
+        +'<div style="font-family:\'Scheherazade New\',serif;font-size:'+this.arabicPx(64)+'px;color:#eccb73;direction:rtl;font-weight:700;line-height:1.4;">'+w.a+'</div>'
+        +(this.data.settings.translit?'<div style="font-size:17px;font-style:italic;color:#dbb964;margin-top:8px;opacity:.9;">'+w.t+'</div>':'')
+        +'<div style="margin-top:12px;">'+this.speakerBtn()+'</div>'
+        +'<div id="hint" style="position:absolute;bottom:18px;left:0;right:0;text-align:center;font-family:Poppins;font-size:11px;letter-spacing:.5px;color:rgba(243,233,207,.4);animation:ayPulse 2.4s ease-in-out infinite;">tap card to reveal</div>'
+      +'</div>'
+      +'<div id="back" style="position:absolute;inset:0;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;text-align:center;opacity:0;pointer-events:none;">'
+        +'<div style="font-size:27px;font-weight:700;color:#78d9a0;line-height:1.25;">'+w.e+'</div>'
+        +(this.data.settings.translit?'<div style="font-size:14px;font-style:italic;color:#4a8a64;margin-top:8px;">'+w.t+'</div>':'')
+        +rootBack
+      +'</div>'
+    +'</div>'
+    +'<div id="recallActions" style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:16px;visibility:hidden;">'
+      +'<div style="display:flex;gap:12px;width:100%;">'
+        +'<button id="bStill" style="flex:1;font-family:Poppins;font-size:14px;font-weight:600;padding:14px 0;border-radius:14px;cursor:pointer;background:#101a30;border:1.5px solid rgba(204,122,122,.35);color:#cc8a8a;">Still learning</button>'
+        +'<button id="bKnew" style="flex:1;font-family:Poppins;font-size:14px;font-weight:600;padding:14px 0;border-radius:14px;cursor:pointer;background:#101a30;border:1.5px solid rgba(120,217,160,.35);color:#78d9a0;">I am good to go</button>'
+      +'</div>'
+      +'<div id="stillHint" style="opacity:0;transition:opacity .25s;font-family:Poppins;font-size:11.5px;color:rgba(243,233,207,.55);text-align:center;line-height:1.5;">Take your time with this one. The meaning stays here. Tap <b style="color:#78d9a0;">I am good to go</b> when it has stuck. This word will also come back for more practice.</div>'
+    +'</div></div>', 'Recall, what does it mean?');
+  this.wireSpeaker(w);
+  var card=this.q('#card'), front=this.q('#front'), back=this.q('#back'), frontBg=this.q('#frontBg'), backBg=this.q('#backBg'), actions=this.q('#recallActions');
+  var revealed=false, lock=false;
+  var reveal=function(e){
+    if (e && e.target && e.target.closest && e.target.closest('.spk')) return;
+    if (lock||revealed) return; lock=true;
+    front.animate([{opacity:1},{opacity:0}],{duration:300,fill:'forwards'});
+    frontBg.animate([{opacity:1},{opacity:0}],{duration:520,fill:'forwards'});
+    backBg.animate([{opacity:0},{opacity:1}],{duration:520,fill:'forwards'});
+    front.style.pointerEvents='none'; back.style.pointerEvents='auto';
+    back.animate([{opacity:0,transform:'scale(.96)'},{opacity:1,transform:'scale(1)'}],{duration:380,delay:260,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'});
+    setTimeout(function(){ revealed=true; lock=false; actions.style.visibility='visible'; actions.classList.add('ay-fade'); },640);
+  };
+  card.addEventListener('click', reveal);
+  // "Still learning" keeps the card on the meaning and does NOT move forward.
+  // It also re-queues the word so it returns later for more practice.
+  var stillUsed=false;
+  this.q('#bStill').onclick=function(){
+    if (!revealed){ reveal(); }
+    if (!stillUsed){ stillUsed=true; self.scheduleRetry(self.lwords.indexOf(w)); }
+    var hint=self.q('#stillHint'); if(hint) hint.style.opacity='1';
+  };
+  this.q('#bKnew').onclick=function(){ self.next(); };
+};
+App.prototype.scPickAr = function(w,rb){
+  rb=rb||''; var self=this;
+  var opts=shuffle([w].concat(this.distractors('a',w,2)));
+  this.paint('<div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;">'+rb
+    +'<div style="text-align:center;width:100%;margin-bottom:4px;"><div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:10px;">Choose the Arabic for</div><div style="font-size:26px;font-weight:600;color:#f3e9cf;line-height:1.3;">'+w.e+'</div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:16px;">'
+    +opts.map(function(o){ return '<button class="opt" data-ar="'+esc(o.a)+'" style="width:100%;background:#0f1932;border:1.5px solid rgba(216,180,92,.18);border-radius:14px;padding:14px 16px;cursor:pointer;transition:transform .12s,border-color .2s,background .2s;"><span style="font-family:\'Scheherazade New\',serif;font-size:'+self.arabicPx(32)+'px;color:#eccb73;direction:rtl;display:block;line-height:1.4;">'+o.a+'</span></button>'; }).join('')
+    +'</div></div>', 'Active recall');
+  this.wireChoice(w.a,'ar',this.lwords.indexOf(w));
+};
+App.prototype.scPickEn = function(w,rb){
+  rb=rb||''; var self=this;
+  var opts=shuffle([w].concat(this.distractors('e',w,2)));
+  this.paint('<div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;">'+rb
+    +'<div style="text-align:center;width:100%;margin-bottom:4px;"><div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:10px;">What does this mean?</div><div style="font-family:\'Scheherazade New\',serif;font-size:'+this.arabicPx(60)+'px;color:#eccb73;direction:rtl;font-weight:700;line-height:1.4;">'+w.a+'</div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:16px;">'
+    +opts.map(function(o){ return '<button class="opt" data-en="'+esc(o.e)+'" style="width:100%;font-family:Poppins;background:#0f1932;border:1.5px solid rgba(216,180,92,.18);color:#f3e9cf;border-radius:14px;padding:15px 16px;cursor:pointer;font-size:16px;font-weight:500;text-align:center;transition:transform .12s,border-color .2s,background .2s;">'+esc(o.e)+'</button>'; }).join('')
+    +'</div></div>', 'Reverse recall');
+  this.wireChoice(w.e,'en',this.lwords.indexOf(w));
+};
+App.prototype.wireChoice = function(correct, attr, wi){
+  var self=this; var btns=this.qa('.opt'); var answered=false;
+  btns.forEach(function(b){ b.addEventListener('click', function(){
+    if (answered) return; answered=true;
+    var val=b.dataset[attr];
+    var cb=btns.filter(function(x){ return x.dataset[attr]===correct; })[0];
+    if (val===correct){ b.style.borderColor='#50bb80'; b.style.background='rgba(80,187,128,.14)'; self.comboHit(true); setTimeout(function(){ self.afterCorrect(wi); },560); }
+    else {
+      b.style.borderColor='#cc5555'; b.style.background='rgba(204,85,85,.12)'; b.style.animation='ayShake .35s ease';
+      if (cb){ cb.style.borderColor='#50bb80'; cb.style.background='rgba(80,187,128,.14)'; }
+      btns.forEach(function(x){ if(x!==b&&x!==cb){ x.style.opacity='.35'; x.style.pointerEvents='none'; } });
+      self.comboHit(false); if(this.lessonMissed) this.lessonMissed[wi]=true;
+      self.scheduleRetry(wi);
+      setTimeout(function(){ self.next(); },1400);
+    }
+  }); });
+};
+
+// ---- root family overlay ----
+App.prototype.rootFamily = function(w){
+  var self=this;
+  var fam=VOCAB.filter(function(x){ return x.rt && w.rt && x.rt===w.rt; });
+  var ov=document.createElement('div');
+  ov.style.cssText='position:absolute;inset:0;z-index:55;display:flex;align-items:center;justify-content:center;background:rgba(4,9,31,.92);opacity:0;transition:opacity .2s;padding:24px;';
+  ov.innerHTML='<div style="width:100%;max-width:330px;background:linear-gradient(145deg,#152448,#0a1740);border:1px solid rgba(216,180,92,.3);border-radius:22px;padding:22px;text-align:center;max-height:80%;overflow:auto;" class="ay-scroll">'
+    +'<div style="font-family:Poppins;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#dbb964;">Shared root</div>'
+    +'<div style="font-family:\'Scheherazade New\',serif;font-size:46px;color:#eccb73;direction:rtl;letter-spacing:10px;margin-top:6px;text-shadow:0 0 24px rgba(231,194,108,.4);">'+w.rt+'</div>'
+    +'<div style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.55);margin:8px 0 16px;">'+fam.length+' word'+(fam.length===1?'':'s')+' from this family in your path</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;">'
+    +fam.map(function(x){ var known=!!self.data.mastered[x.r]; return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(216,180,92,.18);border-radius:12px;padding:10px 14px;">'
+      +'<span style="font-family:\'Scheherazade New\',serif;font-size:26px;color:#eccb73;direction:rtl;">'+x.a+'</span>'
+      +'<span style="flex:1;text-align:left;font-family:Poppins;font-size:13px;color:#f3e9cf;">'+esc(x.e)+'</span>'
+      +(known?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#78d9a0" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>':'<span style="font-family:Poppins;font-size:10px;color:rgba(243,233,207,.4);">soon</span>')
+    +'</div>'; }).join('')
+    +'</div>'
+    +'<button class="ay-ghost" id="rfClose" style="margin-top:18px;">Close</button>'
+  +'</div>';
+  this.root.querySelector('.ay-card').appendChild(ov);
+  requestAnimationFrame(function(){ ov.style.opacity='1'; });
+  ov.querySelector('#rfClose').onclick=function(){ ov.style.opacity='0'; setTimeout(function(){ ov.remove(); },220); };
+  ov.addEventListener('click', function(e){ if(e.target===ov){ ov.style.opacity='0'; setTimeout(function(){ ov.remove(); },220); } });
+};
+
+// ---- ayah context, the "you can understand this now" moment ----
+App.prototype.runAyah = function(){
+  if (this.screen!=='learn') return;
+  var self=this;
+  // Use the most recently learned word and resolve a SHORT verse that contains it.
+  var chosen=this.lwords[this.lwords.length-1] || this.lwords[0];
+  this.bestVerse(chosen).then(function(r){
+    if (self.screen!=='learn') return;
+    if (!r){ self.lphase='fill'; self.fills=[]; return self.next(); }
+    self.lphase='ayah';
+    var chosenVerse=r.verse, tIdx=r.idx;
+    var masteredSet={}; for (var k in self.data.mastered) masteredSet[k]=true;
+    var knownCount=0, totalCount=0;
+    var verseHtml=chosenVerse.words.map(function(vw,idx){
+      totalCount++;
+      var isTarget=(idx===tIdx);
+      var known=isTarget;
+      if (!known){ for (var j=0;j<VOCAB.length;j++){ if ((masteredSet[VOCAB[j].r]||self.sessionLearnedRanks.indexOf(VOCAB[j].r)>=0) && stripDia(VOCAB[j].a)===stripDia(vw.ar)){ known=true; break; } } }
+      if (known) knownCount++;
+      // Whole ayah in one colour; only the target word in a distinct colour + underline.
+      var cls=isTarget?'wordhi':'';
+      var col=isTarget?'#fbeeb8':'#eccb73';
+      return '<span class="'+cls+'" data-vi="'+idx+'" style="color:'+col+';cursor:pointer;padding:0 2px;">'+vw.ar+'</span>';
+    }).join(' ');
+    var allKnown = knownCount>=totalCount;
+    var headline = allKnown ? 'You can now understand this full ayah' : 'You can now partially understand this ayah';
+    var ref=(SURAH_NAMES[chosenVerse.s]||('Surah '+chosenVerse.s))+' '+chosenVerse.s+':'+chosenVerse.v;
+    self.paint('<div style="width:100%;max-width:350px;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:8px;">'
+      +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9be3b8;">'+headline+'</div>'
+      +'<div style="margin-top:6px;font-size:20px;font-weight:600;color:#f3e9cf;">See <span style="font-family:\'Scheherazade New\',serif;color:#fbeeb8;border-bottom:2px solid rgba(231,194,108,.6);">'+chosen.a+'</span> in a real verse</div>'
+      +'<div id="verseBox" style="margin-top:18px;width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(216,180,92,.25);border-radius:18px;padding:20px 16px;">'
+        +'<div id="verseAr" style="font-family:\'Scheherazade New\',serif;font-size:'+self.arabicPx(34)+'px;color:#eccb73;direction:rtl;line-height:2.2;">'+verseHtml+'</div>'
+        +'<div style="height:1px;background:rgba(216,180,92,.18);margin:14px 0;"></div>'
+        +'<div style="font-family:Poppins;font-size:13.5px;color:rgba(243,233,207,.8);line-height:1.6;font-style:italic;">'+esc(chosenVerse.tr||'')+'</div>'
+        +'<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;">'+self.speakerBtn()+'<span style="font-family:Poppins;font-size:11px;color:rgba(243,233,207,.5);">'+ref+'</span></div>'
+      +'</div>'
+      +'<div style="margin-top:12px;font-family:Poppins;font-size:13px;color:rgba(243,233,207,.7);line-height:1.6;">The highlighted word <span style="font-family:\'Scheherazade New\',serif;color:#fbeeb8;border-bottom:2px solid rgba(231,194,108,.7);">'+chosen.a+'</span> means <span style="color:#fbeeb8;border-bottom:2px solid rgba(231,194,108,.7);font-weight:600;">'+esc(chosen.e)+'</span></div>'
+      +'<div style="font-family:Poppins;font-size:11px;color:rgba(243,233,207,.45);margin-top:8px;">Tap any word to hear it.</div>'
+      +'<button class="ay-cta" id="ayNext" style="margin-top:18px;max-width:300px;"><span style="position:relative;z-index:2;">Continue &rarr;</span><span class="sh"></span></button>'
+    +'</div>', 'Verse in context');
+    var spk=self.q('[data-spk]');
+    if (spk) spk.onclick=function(){ var vw=chosenVerse.words[tIdx]; if(vw && vw.audio) self.playUrl(vw.audio, spk); };
+    $all('[data-vi]', self.view).forEach(function(el){ el.onclick=function(){ var idx=+el.dataset.vi; var vw=chosenVerse.words[idx]; if(vw && vw.audio) self.playUrl(vw.audio); }; });
+    self.q('#ayNext').onclick=function(){ self.lphase='build'; self.next(); };
+  });
+};
+App.prototype.buildFills = function(){
+  var self=this; this.fills=[]; this.fillIdx=0;
+  // Up to 2 fills, each from a lesson word resolved to a short verse that contains it.
+  var ws=this.lwords.slice(0, 3);
+  var proms=ws.map(function(w){ return self.bestVerse(w).then(function(r){ return r ? {w:w, verse:r.verse, blank:r.idx} : null; }).catch(function(){ return null; }); });
+  return Promise.all(proms).then(function(arr){
+    var used={};
+    arr.forEach(function(f){
+      if (!f || self.verseLen(f.verse)<3) return;
+      var key=f.verse.s+':'+f.verse.v; if (used[key]) return; used[key]=1;
+      if (self.fills.length<2) self.fills.push(f);
+    });
+  });
+};
+App.prototype.runFill = function(){
+  if (this.screen!=='learn') return;
+  var self=this;
+  if (!this.fills || this.fillIdx>=this.fills.length) return this.startMasterCheck();
+  var f=this.fills[this.fillIdx];
+  var opts=shuffle([f.w].concat(this.distractors('a',f.w,3))).map(function(x){ return x.a; });
+  var verseHtml=f.verse.words.map(function(vw,idx){
+    if (idx===f.blank) return '<span id="blank" style="display:inline-block;min-width:90px;border-bottom:2.5px dashed #fbeeb8;color:transparent;">'+vw.ar+'</span>';
+    return '<span style="color:#eccb73;">'+vw.ar+'</span>';
+  }).join(' ');
+  this.paint('<div style="width:100%;max-width:350px;display:flex;flex-direction:column;align-items:center;">'
+    +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:14px;">Complete the verse</div>'
+    +'<div id="verse" style="font-family:\'Scheherazade New\',serif;font-size:'+this.arabicPx(32)+'px;direction:rtl;line-height:2.1;text-align:center;width:100%;">'+verseHtml+'</div>'
+    +(this.data.settings.translit?'<div style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.5);font-style:italic;text-align:center;max-width:300px;margin-top:10px;line-height:1.5;">'+esc(f.verse.tr||'')+'</div>':'')
+    +'<div style="font-family:Poppins;font-size:13px;color:rgba(243,233,207,.7);text-align:center;margin-top:14px;">Pick the word that means <span style="color:#fbeeb8;border-bottom:2px solid rgba(231,194,108,.7);font-weight:600;">'+esc(f.w.e)+'</span></div>'
+    +'<div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:14px;">'
+    +opts.map(function(o){ return '<button class="opt" data-ar="'+esc(o)+'" style="width:100%;background:#0f1932;border:1.5px solid rgba(216,180,92,.18);border-radius:14px;padding:13px 16px;cursor:pointer;transition:transform .12s,border-color .2s,background .2s;"><span style="font-family:\'Scheherazade New\',serif;font-size:'+self.arabicPx(28)+'px;color:#eccb73;direction:rtl;display:block;line-height:1.4;">'+o+'</span></button>'; }).join('')
+    +'</div></div>', 'Fill in the blank, in context');
+  var blank=this.q('#blank'); var btns=this.qa('.opt'); var answered=false;
+  btns.forEach(function(b){ b.addEventListener('click', function(){
+    if (answered) return; answered=true;
+    var cb=btns.filter(function(x){ return x.dataset.ar===f.w.a; })[0];
+    var ok=b.dataset.ar===f.w.a;
+    if (ok){ b.style.borderColor='#50bb80'; b.style.background='rgba(80,187,128,.14)'; }
+    else { b.style.borderColor='#cc5555'; b.style.background='rgba(204,85,85,.12)'; if(cb){ cb.style.borderColor='#50bb80'; cb.style.background='rgba(80,187,128,.14)'; } btns.forEach(function(x){ if(x!==b&&x!==cb){ x.style.opacity='.35'; x.style.pointerEvents='none'; } }); }
+    if (blank){ blank.style.borderBottom='none'; blank.style.color='#78d9a0'; }
+    setTimeout(function(){ self.fillIdx++; self.runFill(); }, ok?900:1500);
+  }); });
+};
+// ---- item 9: end-of-lesson mastery check over every word, gated until all correct ----
+App.prototype.startMasterCheck = function(){
+  if (this.screen!=='learn') return;
+  var miss=Object.keys(this.lessonMissed||{}).map(Number);
+  if (!miss.length){ this.lphase='summary'; return this.next(); }
+  this.lphase='mastercheck';
+  this.mcQueue=miss.slice();
+  this.mcDone={}; this.mcTotal=miss.length;
+  this.next();
+};
+App.prototype.runMasterCheck = function(){
+  if (this.screen!=='learn') return;
+  var self=this;
+  if (!this.mcQueue || this.mcQueue.length===0){ this.lphase='summary'; return this.next(); }
+  var wi=this.mcQueue.shift(); var w=this.lwords[wi];
+  var opts=shuffle([w].concat(this.distractors('e',w,2)));
+  var doneN=Object.keys(this.mcDone).length;
+  this.paint('<div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;">'
+    +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9be3b8;margin-bottom:4px;">Lesson check &middot; '+doneN+' / '+this.mcTotal+' mastered</div>'
+    +'<div style="font-family:Poppins;font-size:11px;color:rgba(243,233,207,.45);margin-bottom:12px;">Answer every word correctly to finish the lesson</div>'
+    +'<div style="font-family:\'Scheherazade New\',serif;font-size:'+this.arabicPx(58)+'px;color:#eccb73;direction:rtl;font-weight:700;line-height:1.4;">'+w.a+'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:18px;">'
+    +opts.map(function(o){ return '<button class="opt" data-en="'+esc(o.e)+'" style="width:100%;font-family:Poppins;background:#0f1932;border:1.5px solid rgba(216,180,92,.18);color:#f3e9cf;border-radius:14px;padding:15px 16px;cursor:pointer;font-size:16px;font-weight:500;text-align:center;transition:transform .12s,border-color .2s,background .2s;">'+esc(o.e)+'</button>'; }).join('')
+    +'</div></div>', 'Lesson mastery check');
+  var btns=this.qa('.opt'); var answered=false;
+  btns.forEach(function(b){ b.addEventListener('click', function(){
+    if (answered) return; answered=true;
+    var cb=btns.filter(function(x){ return x.dataset.en===w.e; })[0];
+    if (b.dataset.en===w.e){ b.style.borderColor='#50bb80'; b.style.background='rgba(80,187,128,.14)'; self.mcDone[wi]=true; setTimeout(function(){ self.next(); }, 650); }
+    else {
+      b.style.borderColor='#cc5555'; b.style.background='rgba(204,85,85,.12)'; b.style.animation='ayShake .35s ease';
+      if (cb){ cb.style.borderColor='#50bb80'; cb.style.background='rgba(80,187,128,.14)'; }
+      btns.forEach(function(x){ if(x!==b&&x!==cb){ x.style.opacity='.35'; x.style.pointerEvents='none'; } });
+      // Not memorized yet: send this word to the back of the queue and keep going until it is correct.
+      self.mcQueue.push(wi);
+      setTimeout(function(){ self.next(); }, 1500);
+    }
+  }); });
+};
+
+// ============ CELEBRATIONS ============
+App.prototype.celebrate = function(){
+  if (this._celebrated) return; this._celebrated=true;
+  this.lphase='done';
+  this.data.lessonsDone[this.lesson.idx]=true;
+  this.data.xp+=XP_PER_LESSON;
+  this.bumpStreak();
+  // milestone badge check
+  var band=this.lesson.band;
+  this.pendingMilestone=null;
+  if (this.bandComplete(band) && this.data.badges.indexOf(band)<0){ this.data.badges.push(band); this.pendingMilestone=band; }
+  var _lv=this.data.lessonLevel||(this.data.lessonLevel={}); _lv[this.lesson.idx]=Math.min(3,(_lv[this.lesson.idx]||0)+1);
+  this.save();
+  this.go('celebrate');
+};
+App.prototype.renderCelebration = function(){
+  var self=this;
+  var gained=this.sessionLearnedRanks.length / TOTAL_TARGET * PCT_AT_TARGET;
+  this.view.innerHTML =
+    '<div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:150px 32px 28px;">'
+      +'<div class="r-logoar" style="font-family:\'Scheherazade New\',serif;font-size:58px;line-height:.9;color:#eccb73;text-shadow:0 0 24px rgba(231,194,108,.6);">آية</div>'
+      +'<div class="r-kicker" style="margin-top:18px;max-width:240px;font-family:Poppins;font-size:19px;line-height:1.2;font-weight:600;color:#dbb964;">Mabruk! Lesson completed.</div>'
+      +'<p class="r-sub" style="margin:10px 0 0;max-width:240px;font-size:16px;line-height:1.5;color:rgba(243,233,207,.72);">May your journey bring you closer to understanding.</p>'
+      +'<div class="r-mile" style="position:relative;margin-top:28px;width:100%;min-height:150px;display:flex;align-items:center;justify-content:center;">'
+        +'<div class="wheatL" style="position:absolute;left:-2px;top:-38px;transform-origin:bottom center;"></div>'
+        +'<div style="position:relative;z-index:2;text-align:center;padding:0 76px;">'
+          +'<div class="r-mile-k" style="font-family:Poppins;font-size:13px;letter-spacing:.12em;color:#eccb73;white-space:nowrap;">Milestone '+this.lesson.band+' &middot; Lesson '+(this.lesson.idx+1)+'</div>'
+          +'<div class="r-mile-n" style="margin-top:8px;font-size:24px;font-weight:600;color:#fbeeb8;white-space:nowrap;text-shadow:0 0 16px rgba(231,194,108,.4);">'+this.sessionLearnedRanks.length+' words learned</div>'
+        +'</div>'
+        +'<div class="wheatR" style="position:absolute;right:-2px;top:-38px;transform-origin:bottom center;"></div>'
+      +'</div>'
+      +'<div class="r-stats" style="display:flex;gap:9px;width:100%;max-width:330px;margin-top:6px;opacity:0;">'
+      +[[this.sessionLearnedRanks.length,'words'],[this.sessionCorrect,'correct'],['+'+gained.toFixed(1)+'%','comprehension']].map(function(s){ return '<div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(216,180,92,.2);border-radius:12px;padding:10px 6px;"><div style="font-family:Poppins;font-weight:700;font-size:20px;color:#78d9a0;">'+s[0]+'</div><div style="font-family:Poppins;font-size:9.5px;color:rgba(243,233,207,.5);margin-top:2px;">'+s[1]+'</div></div>'; }).join('')
+      +'</div>'
+      +'<button class="r-cta1 ay-cta" style="margin-top:24px;max-width:300px;"><span style="position:relative;z-index:2;">'+(this.pendingMilestone?'Claim your badge &rarr;':'Continue journey &rarr;')+'</span><span class="sh"></span></button>'
+      +'<button class="r-cta2 ay-ghost" style="margin-top:11px;max-width:300px;">View progress</button>'
+    +'</div>';
+  this.q('.wheatL').innerHTML=this.buildWheat('left');
+  this.q('.wheatR').innerHTML=this.buildWheat('right');
+  this.q('.r-cta1').onclick=function(){ if(self.pendingMilestone){ var m=self.pendingMilestone; self.pendingMilestone=null; self.go('milestone',{band:m}); } else self.go('home'); };
+  this.q('.r-cta2').onclick=function(){ self.go('progress'); };
+  this.parts=[]; this.riseOn=false;
+  this.waitGsap();
+};
+App.prototype.renderMilestone = function(opts){
+  var self=this; var band=opts.band;
+  var pct=this.comprehension();
+  this.view.innerHTML =
+    '<div class="ay-fade" style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:120px 32px 28px;">'
+      +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#dbb964;">Milestone reached</div>'
+      +'<div style="position:relative;margin-top:24px;width:150px;height:150px;display:flex;align-items:center;justify-content:center;">'
+        +'<div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(231,194,108,.3),transparent 70%);animation:ayahGlowPulse 3s ease-in-out infinite;"></div>'
+        +'<div style="position:relative;width:118px;height:118px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#fbeeb8,#d8b45c);box-shadow:0 10px 30px rgba(216,180,92,.4);">'
+          +'<div style="font-family:Poppins;font-weight:700;font-size:30px;color:#1a1206;">'+(band*5)+'%</div>'
+          +'<div style="font-family:Poppins;font-size:9px;letter-spacing:.1em;color:#5a4a1e;text-transform:uppercase;">Milestone '+band+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div style="margin-top:24px;font-size:26px;font-weight:600;color:#fbeeb8;">A new badge earned</div>'
+      +'<p style="margin:10px 0 0;max-width:260px;font-family:Poppins;font-size:13px;line-height:1.6;color:rgba(243,233,207,.7);">You now understand about '+pct.toFixed(1)+'% of the words in the Quran. Keep going and the meaning keeps opening up.</p>'
+      +'<div style="display:flex;gap:11px;margin-top:24px;width:100%;max-width:300px;">'
+        +'<div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(216,180,92,.2);border-radius:12px;padding:12px 6px;"><div style="font-family:Poppins;font-weight:700;font-size:20px;color:#78d9a0;">'+this.data.wordsMastered+'</div><div style="font-family:Poppins;font-size:9.5px;color:rgba(243,233,207,.5);">words</div></div>'
+        +'<div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(216,180,92,.2);border-radius:12px;padding:12px 6px;"><div style="font-family:Poppins;font-weight:700;font-size:20px;color:#78d9a0;">'+this.data.xp+'</div><div style="font-family:Poppins;font-size:9.5px;color:rgba(243,233,207,.5);">XP</div></div>'
+        +'<div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(216,180,92,.2);border-radius:12px;padding:12px 6px;"><div style="font-family:Poppins;font-weight:700;font-size:20px;color:#78d9a0;">'+this.data.badges.length+'</div><div style="font-family:Poppins;font-size:9.5px;color:rgba(243,233,207,.5);">badges</div></div>'
+      +'</div>'
+      +'<button class="ay-cta" id="msNext" style="margin-top:28px;max-width:300px;"><span style="position:relative;z-index:2;">Continue &rarr;</span><span class="sh"></span></button>'
+    +'</div>';
+  setTimeout(function(){ if(self.cw) self.burstAt(self.cw/2, 230, 26, 0, true); },300);
+  this.q('#msNext').onclick=function(){ self.go('home'); };
+};
+App.prototype.waitGsap = function(){ if (window.gsap && this.view){ this.play(); } else { var self=this; this._gt=setTimeout(function(){ self.waitGsap(); },60); } };
+App.prototype.play = function(){
+  var g=window.gsap, root=this.root, view=this.view;
+  g.killTweensOf('*'); if (this.tl) this.tl.kill();
+  var q=function(s){ return (s.indexOf('.r-')===0||s==='.wheatL'||s==='.wheatR') ? view.querySelector(s) : root.querySelector(s); };
+  var qa=function(s){ return Array.prototype.slice.call(view.querySelectorAll(s)); };
+  var arch=root.querySelector('.arch');
+  var archPaths=Array.prototype.slice.call(arch.querySelectorAll('.archStroke'));
+  var finial=arch.querySelector('.r-finial');
+  archPaths.forEach(function(p){ var l=p.getTotalLength(); g.set(p,{strokeDasharray:l,strokeDashoffset:l}); });
+  qa('.stem').forEach(function(s){ var l=s.getTotalLength(); g.set(s,{strokeDasharray:l,strokeDashoffset:l}); });
+  g.set(qa('.grain'),{scale:0}); g.set(finial,{scale:0,opacity:0});
+  g.set(q('.archFlash'),{scale:.6,opacity:0});
+  var tl=g.timeline({ defaults:{ease:'power3.out'} }); this.tl=tl; var self=this;
+  tl.to(archPaths,{strokeDashoffset:0,duration:.85,ease:'power2.inOut'},.1)
+    .from(q('.archFill'),{opacity:0,duration:.7},.15)
+    .to(finial,{scale:1,opacity:1,transformOrigin:'180px 18px',duration:.3,ease:'back.out(1.7)'},.95)
+    .to(q('.archFlash'),{opacity:.85,scale:1,duration:.26,ease:'power2.out'},1.0)
+    .to(q('.archFlash'),{opacity:0,scale:1.6,duration:.7,ease:'power2.in'},1.26)
+    .add(function(){ self.archBurst(); },1.22)
+    .from(q('.r-logoar'),{y:16,opacity:0,scale:.9,duration:.7},1.32)
+    .from(q('.r-kicker'),{y:12,opacity:0,duration:.6},1.6)
+    .from(q('.r-sub'),{y:12,opacity:0,duration:.6},1.85);
+  var W=2.25;
+  tl.from(q('.wheatL'),{x:30,rotation:10,opacity:0,duration:.7},W)
+    .from(q('.wheatR'),{x:-30,rotation:-10,opacity:0,duration:.7},W)
+    .to(qa('.stem'),{strokeDashoffset:0,duration:.8,ease:'power2.out'},W+.05)
+    .to(qa('.grain'),{scale:1,duration:.5,ease:'back.out(1.7)',stagger:.018},W+.4)
+    .from(q('.r-mile-k'),{y:10,opacity:0,duration:.5},W+.3)
+    .from(q('.r-mile-n'),{y:12,opacity:0,duration:.5},W+.45)
+    .to(q('.r-stats'),{opacity:1,duration:.5},W+.7)
+    .from(q('.r-cta1'),{y:14,opacity:0,duration:.6},W+.95)
+    .from(q('.r-cta2'),{y:12,opacity:0,duration:.6},W+1.1)
+    .add(function(){ self.riseOn=true; }, W+1.2);
+};
+App.prototype.wordCelebrate = function(word, onDone){
+  var self=this;
+  var p=PHRASES[this.phraseIdx % PHRASES.length]; this.phraseIdx++;
+  var ov=document.createElement('div');
+  ov.style.cssText='position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(4,9,31,.9);opacity:0;transition:opacity .22s ease;';
+  ov.innerHTML='<div style="position:relative;display:flex;flex-direction:column;align-items:center;padding:20px;">'
+    +'<div class="wFlash" style="position:absolute;width:300px;height:300px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%) scale(.5);opacity:0;background:radial-gradient(circle,rgba(255,245,210,.85) 0%,rgba(231,194,108,.45) 26%,rgba(231,194,108,0) 62%);"></div>'
+    +'<div style="position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(ellipse,rgba(231,194,108,.22) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);"></div>'
+    +'<div class="wAr" style="font-family:\'Scheherazade New\',serif;font-size:'+this.arabicPx(70)+'px;color:#fbeeb8;direction:rtl;font-weight:700;line-height:1.4;text-align:center;position:relative;z-index:2;text-shadow:0 0 30px rgba(231,194,108,.5);opacity:0;transform:scale(.6);">'+word.a+'</div>'
+    +'<div class="wPh" style="font-family:\'Scheherazade New\',serif;font-size:30px;color:#78d9a0;direction:rtl;line-height:1.5;text-align:center;margin-top:8px;position:relative;z-index:2;opacity:0;text-shadow:0 0 20px rgba(120,217,160,.3);">'+p.ar+'</div>'
+    +'<div class="wPhEn" style="font-family:Poppins;font-size:13px;color:#6a8a74;letter-spacing:.5px;margin-top:6px;position:relative;z-index:2;opacity:0;">'+p.en+'</div>'
+  +'</div>';
+  this.root.querySelector('.ay-card').appendChild(ov);
+  if (this.canvas) this.canvas.style.zIndex='60';
+  requestAnimationFrame(function(){ ov.style.opacity='1';
+    var ar=ov.querySelector('.wAr');
+    ar.animate([{opacity:0,transform:'scale(.55) translateY(10px)',filter:'blur(6px)'},{opacity:1,transform:'scale(1.12)',filter:'blur(0)'},{opacity:1,transform:'scale(1)',filter:'blur(0)'}],{duration:550,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'});
+    setTimeout(function(){
+      var flash=ov.querySelector('.wFlash');
+      flash.animate([{opacity:0,transform:'translate(-50%,-50%) scale(.5)'},{opacity:.9,transform:'translate(-50%,-50%) scale(1)'},{opacity:0,transform:'translate(-50%,-50%) scale(1.7)'}],{duration:620,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'});
+      if (self.crect && self.cw){ var r=ar.getBoundingClientRect(); var cx=r.left+r.width/2-self.crect.left, cy=r.top+r.height/2-self.crect.top; self.burstAt(cx,cy,22,0,true); }
+    },260);
+    setTimeout(function(){ ov.querySelector('.wPh').animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:380,fill:'forwards'}); setTimeout(function(){ ov.querySelector('.wPhEn').animate([{opacity:0},{opacity:1}],{duration:300,fill:'forwards'}); },150); },560);
+  });
+  setTimeout(function(){ ov.style.opacity='0'; setTimeout(function(){ ov.remove(); if(self.canvas) self.canvas.style.zIndex='2'; onDone(); },250); }, 1800);
+};
+// ============ VISUALS (reused from the design source) ============
+App.prototype.buildWheat = function(side){
+  var left=side==='left', id='ayw_'+side;
+  var P0=[96,184],P1=[62,100],P2=[72,8];
+  var pt=function(t){ return {x:(1-t)*(1-t)*P0[0]+2*(1-t)*t*P1[0]+t*t*P2[0], y:(1-t)*(1-t)*P0[1]+2*(1-t)*t*P1[1]+t*t*P2[1]}; };
+  var tan=function(t){ var dx=2*(1-t)*(P1[0]-P0[0])+2*t*(P2[0]-P1[0]); var dy=2*(1-t)*(P1[1]-P0[1])+2*t*(P2[1]-P1[1]); return Math.atan2(dy,dx)*180/Math.PI; };
+  var stemD='M'+P0[0]+' '+P0[1]+' Q '+P1[0]+' '+P1[1]+' '+P2[0]+' '+P2[1];
+  var grain=function(len,w){ return 'M0 0 C '+(w*.5).toFixed(1)+' '+(-len*.32).toFixed(1)+' '+(w*.5).toFixed(1)+' '+(-len*.7).toFixed(1)+' 0 '+(-len).toFixed(1)+' C '+(-w*.5).toFixed(1)+' '+(-len*.7).toFixed(1)+' '+(-w*.5).toFixed(1)+' '+(-len*.32).toFixed(1)+' 0 0 Z'; };
+  var g=function(tx,ty,rot,inner){ return '<g class="grain" transform="translate('+tx+' '+ty+') rotate('+rot+')" style="transform-box:fill-box;transform-origin:50% 100%;">'+inner+'</g>'; };
+  var parts='', N=9, i;
+  for (i=N-1;i>=0;i--){ var t=.12+.86*(i/(N-1)); var p=pt(t),T=tan(t); var len=9+9*Math.sin(Math.PI*(.12+.82*t)); var w=len*.42;
+    [+1,-1].forEach(function(s2){ var rot=(T-90+s2*24).toFixed(1);
+      parts+=g(p.x.toFixed(1),p.y.toFixed(1),rot,'<path d="'+grain(len,w)+'" fill="url(#'+id+')" stroke="#7d6128" stroke-width="0.35"/><path d="M0 '+(-len).toFixed(1)+' L 0 '+(-len-7).toFixed(1)+'" stroke="#c9a24a" stroke-width="0.6" opacity="0.7"/>'); });
+  }
+  { var p1=pt(1),T1=tan(1); parts+=g(p1.x.toFixed(1),p1.y.toFixed(1),(T1-90).toFixed(1),'<path d="'+grain(13,5)+'" fill="url(#'+id+')" stroke="#7d6128" stroke-width="0.35"/><path d="M0 -13 L 0 -22" stroke="#c9a24a" stroke-width="0.6" opacity="0.7"/>'); }
+  [.16,.32].forEach(function(t,j){ var p=pt(t),T=tan(t); var bl=30-j*7; parts+=g(p.x.toFixed(1),p.y.toFixed(1),(T-90-62).toFixed(1),'<path d="'+grain(bl,bl*.22)+'" fill="url(#'+id+')" opacity="0.92"/>'); });
+  return '<svg width="108" height="176" viewBox="0 0 120 196" style="overflow:visible;"><defs><linearGradient id="'+id+'" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#b78f3e"/><stop offset="1" stop-color="#fbeeb8"/></linearGradient></defs><g '+(left?'':'transform="translate(120,0) scale(-1,1)"')+'><path class="stem" d="'+stemD+'" fill="none" stroke="url(#'+id+')" stroke-width="2" stroke-linecap="round"/>'+parts+'</g></svg>';
+};
+App.prototype.starTilePath = function(s){
+  var star=function(cx,cy,Rr,rr){ var d='',n=8,i; for(i=0;i<2*n;i++){ var rad=(i%2)?rr:Rr; var a=Math.PI*i/n-Math.PI/2; d+=(i?'L':'M')+(cx+rad*Math.cos(a)).toFixed(1)+' '+(cy+rad*Math.sin(a)).toFixed(1)+' '; } return d+'Z '; };
+  var oct=function(cx,cy,Rr){ var d='',n=8,i; for(i=0;i<n;i++){ var a=Math.PI*2*i/n-Math.PI/8; d+=(i?'L':'M')+(cx+Rr*Math.cos(a)).toFixed(1)+' '+(cy+Rr*Math.sin(a)).toFixed(1)+' '; } return d+'Z '; };
+  var h=s/2; return star(h,h,17,7)+oct(h,h,22)+star(0,0,13,5)+star(s,0,13,5)+star(0,s,13,5)+star(s,s,13,5);
+};
+App.prototype.buildDeco = function(){
+  var cont=this.root.querySelector('.deco'); if(!cont) return; cont.innerHTML='';
+  var spots=[],i; for(i=0;i<60 && spots.length<16;i++){ var x=Math.random()*100,y=Math.random()*100; if(!(x<22||x>78||y<12||y>86))continue; spots.push({x:x,y:y,s:13+Math.random()*22,op:.1+Math.random()*.26,r:Math.random()*30-15,dur:5+Math.random()*5,del:Math.random()*4}); }
+  var self=this;
+  spots.forEach(function(sp){ var el=document.createElement('div'); el.textContent=GLYPHS[Math.floor(Math.random()*GLYPHS.length)];
+    el.style.cssText='position:absolute;left:'+sp.x+'%;top:'+sp.y+'%;font-family:\'Scheherazade New\',serif;font-size:'+sp.s+'px;color:'+ART+';opacity:'+sp.op+';--r:'+sp.r+'deg;transform:rotate('+sp.r+'deg);animation:ayahDeco '+sp.dur+'s ease-in-out '+sp.del+'s infinite;text-shadow:0 0 8px rgba(231,194,108,.4);';
+    cont.appendChild(el); });
+};
+App.prototype.startCanvas = function(){
+  var canvas=this.root.querySelector('.dust'); if(!canvas) return;
+  var ctx=canvas.getContext('2d'); this.ctx=ctx; this.canvas=canvas;
+  if (!ctx) return;
+  var dpr=Math.min(window.devicePixelRatio||1,2); var self=this;
+  var resize=function(){ var r=canvas.getBoundingClientRect(); self.cw=r.width; self.ch=r.height; self.crect=r; canvas.width=r.width*dpr; canvas.height=r.height*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); };
+  resize(); this._resize=resize; window.addEventListener('resize',resize);
+  this.parts=[]; this.riseOn=false; this.riseAcc=0; this.loop();
+};
+App.prototype.archBurst = function(){ this.burstAt(this.cw/2,112,16,1.7); };
+App.prototype.burstAt = function(cx,cy,n,spread,omni){
+  for (var i=0;i<(n||18);i++){
+    var a=omni?Math.random()*Math.PI*2:(-Math.PI/2)+(Math.random()-.5)*Math.PI*(spread||1.7);
+    var sp=2.4+Math.random()*4;
+    this.parts.push({kind:'letter',glyph:GLYPHS[Math.floor(Math.random()*GLYPHS.length)],x:cx+(Math.random()-.5)*26,y:cy+(Math.random()-.5)*18,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,size:20+Math.random()*12,dot:1.6+Math.random()*1.4,rot:(Math.random()-.5)*40,vr:(Math.random()-.5)*1.6,age:0,shrink:34+Math.random()*26,alpha:1,phase:Math.random()*6.28});
+  }
+};
+App.prototype.spawnRise = function(){
+  var btn=this.view && this.view.querySelector('.r-cta1'); if(!btn||!this.crect) return;
+  var b=btn.getBoundingClientRect(); var x0=b.left-this.crect.left, y0=b.top-this.crect.top;
+  var k=1+(Math.random()<.55?1:0);
+  for (var i=0;i<k;i++){ var rise=-(.9+Math.random()*.5);
+    this.parts.push({kind:'rletter',glyph:GLYPHS[Math.floor(Math.random()*GLYPHS.length)],x:x0+Math.random()*b.width,y:y0+2+Math.random()*4,vy:rise,sway:.3+Math.random()*.5,phase:Math.random()*6.28,size:17+Math.random()*9,dot:1.6+Math.random()*1.2,rot:(Math.random()-.5)*26,vr:(Math.random()-.5)*.7,age:0,shrink:30+Math.random()*22,alpha:0,amax:.85+Math.random()*.15,fading:false}); }
+};
+App.prototype.loop = function(){
+  var ctx=this.ctx; if(!ctx){ return; } ctx.clearRect(0,0,this.cw,this.ch);
+  if (this.riseOn){ this.riseAcc++; if(this.riseAcc>6){ this.riseAcc=0; this.spawnRise(); } }
+  var dots=0, self=this;
+  for (var i=this.parts.length-1;i>=0;i--){ var p=this.parts[i];
+    if (p.kind==='letter'){ p.vx*=.975; p.vy=p.vy*.975+.035; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.age++;
+      if (p.age>p.shrink){ p.size+=(p.dot-p.size)*.07; if(p.size<=p.dot+.5){ p.kind='dot'; p.glyph=null; p.size=p.dot; p.vx=(Math.random()-.5)*.3; p.vy=-.05-Math.random()*.12; p.alpha=p.amax=.45+Math.random()*.35; } } }
+    else if (p.kind==='rletter'){ p.phase+=.05; p.age++; p.y+=p.vy; p.x+=Math.sin(p.phase)*p.sway; p.rot+=p.vr;
+      if (!p.fading&&p.alpha<p.amax) p.alpha=Math.min(p.amax,p.alpha+.07);
+      if (p.glyph&&p.age>p.shrink){ p.size+=(p.dot-p.size)*.08; if(p.size<=p.dot+.5){ p.glyph=null; p.size=p.dot; } }
+      if (p.y<this.ch*.24){ p.fading=true; p.alpha-=.018; }
+      if (p.alpha<=0||p.y<8||p.size<.4){ this.parts.splice(i,1); continue; } }
+    else if (p.kind==='dot'){ dots++; p.phase+=.02; p.x+=p.vx+Math.sin(p.phase)*.16; p.y+=p.vy; if(p.y<-12){ p.y=this.ch+12; p.x=Math.random()*this.cw; } if(p.x<-12)p.x=this.cw+12; if(p.x>this.cw+12)p.x=-12; }
+    this.drawPart(ctx,p);
+  }
+  if (dots>40){ for(var j=0;j<this.parts.length&&dots>40;j++){ if(this.parts[j].kind==='dot'){ this.parts.splice(j,1); dots--; j--; } } }
+  this.raf=requestAnimationFrame(function(){ self.loop(); });
+};
+App.prototype.drawPart = function(ctx,p){
+  if (p.glyph){ var fl=p.alpha*(.7+.3*Math.sin(p.phase)); ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180); ctx.font=p.size.toFixed(1)+"px 'Scheherazade New', serif"; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.shadowColor='rgba(231,194,108,.9)'; ctx.shadowBlur=8; ctx.fillStyle='rgba(245,224,160,'+Math.max(0,fl)+')'; ctx.fillText(p.glyph,0,0); ctx.restore(); }
+  else { var fl2=p.kind==='dot'?p.alpha*(.55+.45*Math.sin(p.phase*1.7)):p.alpha; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,6.2832); ctx.fillStyle='rgba(245,224,160,'+Math.max(0,fl2)+')'; ctx.shadowColor='rgba(231,194,108,.95)'; ctx.shadowBlur=7; ctx.fill(); }
+  ctx.shadowBlur=0;
+};
+
+// ============ REVISION TAB (DEMO) ============
+function normAns(s){ return String(s||'').toLowerCase().replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim(); }
+
+App.prototype.learnedPool = function(){
+  var self=this;
+  return VOCAB.filter(function(w){ return !!self.data.mastered[w.r]; });
+};
+App.prototype.lessonsCompletedCount = function(){ var n=0,k; for (k in this.data.lessonsDone){ if(this.data.lessonsDone[k]) n++; } return n; };
+App.prototype.matchMeaning = function(input, meaning){
+  var inp=normAns(input); if(!inp) return false;
+  var alts=String(meaning).split('/').map(function(a){ return normAns(a); });
+  var exp=[];
+  alts.forEach(function(a){ if(a) exp.push(a); var b=a.replace(/^(the|a|an|to|and)\s+/,''); if(b&&b!==a) exp.push(b); });
+  for (var i=0;i<exp.length;i++){ var e=exp[i]; if(!e) continue;
+    if (inp===e) return true;
+    if (inp.length>=3 && e.indexOf(inp)>=0) return true;
+    if (e.length>=3 && inp.indexOf(e)>=0) return true;
+  }
+  return false;
+};
+App.prototype.engOptions = function(w, n){
+  var pool=this.learnedPool().filter(function(x){ return x.e!==w.e; });
+  if (pool.length<n) pool=pool.concat(VOCAB.filter(function(x){ return x.e!==w.e; }));
+  var seen={}, uniq=[];
+  shuffle(pool).forEach(function(x){ if(!seen[x.e]){ seen[x.e]=1; uniq.push(x); } });
+  var picks=uniq.slice(0,n).map(function(x){ return x.e; });
+  return shuffle([w.e].concat(picks));
+};
+
+App.prototype.renderRevise = function(){
+  this.reviseActive=false;
+  var self=this;
+  var pool=this.learnedPool();
+  var n=pool.length;
+  var card=function(id, icon, title, desc){
+    return '<button data-rv="'+id+'" style="text-align:left;width:100%;display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.04);border:1px solid rgba(216,180,92,.25);border-radius:18px;padding:16px;cursor:pointer;transition:transform .12s,border-color .2s,background .2s;">'
+      +'<div style="flex:0 0 auto;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(216,180,92,.1);border:1px solid rgba(216,180,92,.25);">'+icon+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:20px;font-weight:600;color:#f3e9cf;">'+title+'</div>'
+        +'<div style="font-family:Poppins;font-size:11.5px;color:rgba(243,233,207,.55);margin-top:2px;line-height:1.5;">'+desc+'</div>'
+      +'</div>'
+      +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#eccb73" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>'
+    +'</button>';
+  };
+  var icRec='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#eccb73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>';
+  var icType='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#eccb73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>';
+  var icTimer='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#eccb73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M9 1h6"/></svg>';
+  this.view.innerHTML =
+    '<div class="ay-fade" style="flex:1;display:flex;flex-direction:column;padding:48px 24px 18px;">'
+      +'<div style="font-size:27px;font-weight:600;color:#f3e9cf;">Revision</div>'
+      +'<div style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.5);margin-top:2px;">Strengthen the words you have already learned.</div>'
+      +'<div style="margin-top:16px;border-radius:16px;border:1px solid rgba(216,180,92,.25);background:linear-gradient(135deg,rgba(29,48,104,.5),rgba(10,21,56,.5));padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">'
+        +'<div><div style="font-family:Poppins;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#dbb964;">Ready to revise</div><div style="font-family:Poppins;font-size:13px;color:rgba(243,233,207,.7);margin-top:2px;">words from completed lessons</div></div>'
+        +'<div style="font-size:34px;font-weight:700;color:#fbeeb8;font-family:Poppins;line-height:1;">'+n+'</div>'
+      +'</div>'
+      + (n<3 ? '<div style="margin-top:18px;border:1px dashed rgba(216,180,92,.3);border-radius:14px;padding:18px;text-align:center;font-family:Poppins;font-size:13px;color:rgba(243,233,207,.6);">Complete at least one lesson to unlock revision exercises.</div>'
+        :
+        '<div style="margin-top:18px;display:flex;flex-direction:column;gap:12px;">'
+        + card('recognition', icRec, 'Word Recognition', 'See an Arabic word, choose the correct English meaning from four options.')
+        + card('typing', icType, 'Typing Exercise', 'See an Arabic word and type its English meaning from memory.')
+        + card('timed', icTimer, 'Timed Challenge', 'Thirty seconds. Match as many words as you can, as fast as you can.')
+        +'</div>')
+      +'<div style="text-align:center;margin-top:24px;opacity:.4;"><div style="font-family:\'Scheherazade New\',serif;font-size:20px;color:#c9a24a;">آية</div></div>'
+    +'</div>';
+  $all('[data-rv]', this.view).forEach(function(b){ b.onclick=function(){ var m=b.dataset.rv; if(m==='recognition') self.reviseRecognition(); else if(m==='typing') self.reviseTyping(); else if(m==='timed') self.reviseTimed(); }; });
+};
+
+App.prototype.reviseChrome = function(title){
+  var self=this;
+  this.reviseActive=true; this.nav.style.display='none';
+  this.view.innerHTML =
+    '<div style="flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:42px 26px 8px;">'
+      +'<button id="rvClose" style="background:none;border:none;cursor:pointer;color:rgba(243,233,207,.5);padding:0;display:flex;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+      +'<div style="flex:1;height:7px;background:#0d1838;border-radius:999px;overflow:hidden;"><div id="rvFill" style="height:100%;width:0;background:linear-gradient(90deg,#d8b45c,#fbeeb8);border-radius:999px;transition:width .4s;"></div></div>'
+      +'<div id="rvCount" style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.55);min-width:46px;text-align:right;"></div>'
+    +'</div>'
+    +'<div id="rvLabel" style="flex:0 0 auto;text-align:center;font-family:Poppins;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(243,233,207,.4);padding:6px 0 2px;">'+title+'</div>'
+    +'<div id="rvStage" class="ay-scroll" style="flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 24px 24px;overflow-y:auto;"></div>';
+  this.q('#rvClose').onclick=function(){ if(self._rvTimer){ clearInterval(self._rvTimer); self._rvTimer=null; } self.reviseActive=false; self.go('revise'); };
+};
+
+App.prototype.reviseResults = function(title, correct, total, retry){
+  var self=this;
+  var pct = total? Math.round(correct/total*100):0;
+  var msg = pct>=80?'Excellent recall':pct>=50?'Good, keep practicing':'Worth another round';
+  var s=this.q('#rvStage'); if(!s) return;
+  var label=this.q('#rvLabel'); if(label) label.textContent='Results';
+  var f=this.q('#rvFill'); if(f) f.style.width='100%';
+  var c=this.q('#rvCount'); if(c) c.textContent=total+'/'+total;
+  s.innerHTML='<div class="ay-fade" style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:24px;">'
+    +'<div style="font-family:\'Scheherazade New\',serif;font-size:44px;color:#eccb73;text-shadow:0 0 20px rgba(231,194,108,.5);">آية</div>'
+    +'<div style="margin-top:14px;font-family:Poppins;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#dbb964;">'+esc(title)+'</div>'
+    +'<div style="margin-top:14px;font-size:60px;font-weight:700;color:#78d9a0;font-family:Poppins;line-height:1;">'+correct+'<span style="font-size:26px;color:rgba(243,233,207,.5);">/'+total+'</span></div>'
+    +'<div style="margin-top:8px;font-size:20px;font-weight:600;color:#fbeeb8;">'+msg+'</div>'
+    +'<button class="ay-cta" id="rvAgain" style="margin-top:26px;max-width:300px;"><span style="position:relative;z-index:2;">Try again &rarr;</span><span class="sh"></span></button>'
+    +'<button class="ay-ghost" id="rvBack" style="margin-top:11px;max-width:300px;">Back to revision</button>'
+    +'</div>';
+  this.q('#rvAgain').onclick=function(){ retry(); };
+  this.q('#rvBack').onclick=function(){ self.reviseActive=false; self.go('revise'); };
+};
+
+App.prototype.reviseRecognition = function(){
+  var self=this;
+  var pool=this.learnedPool();
+  var qs=shuffle(pool).slice(0, Math.min(8,pool.length));
+  this.reviseChrome('Word Recognition');
+  var i=0, correct=0;
+  function ask(){
+    if (i>=qs.length) return self.reviseResults('Word Recognition', correct, qs.length, self.reviseRecognition.bind(self));
+    var f=self.q('#rvFill'); if(f) f.style.width=(i/qs.length*100)+'%';
+    var cc=self.q('#rvCount'); if(cc) cc.textContent=i+'/'+qs.length;
+    var w=qs[i]; var opts=self.engOptions(w,3);
+    var s=self.q('#rvStage'); if(!s) return;
+    s.innerHTML='<div class="ay-fade" style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;">'
+      +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:10px;">What does this mean?</div>'
+      +'<div style="font-family:\'Scheherazade New\',serif;font-size:'+self.arabicPx(60)+'px;color:#eccb73;direction:rtl;font-weight:700;line-height:1.4;">'+w.a+'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:18px;">'
+      +opts.map(function(o){ return '<button class="rvopt" data-en="'+esc(o)+'" style="width:100%;font-family:Poppins;background:#0f1932;border:1.5px solid rgba(216,180,92,.18);color:#f3e9cf;border-radius:14px;padding:15px 16px;cursor:pointer;font-size:16px;font-weight:500;text-align:center;transition:transform .12s,border-color .2s,background .2s;">'+esc(o)+'</button>'; }).join('')
+      +'</div></div>';
+    s.scrollTop=0;
+    var btns=$all('.rvopt', s), answered=false;
+    btns.forEach(function(b){ b.onclick=function(){ if(answered) return; answered=true;
+      var cb=btns.filter(function(x){return x.dataset.en===w.e;})[0];
+      if (b.dataset.en===w.e){ b.style.borderColor='#50bb80'; b.style.background='rgba(80,187,128,.14)'; correct++; }
+      else { b.style.borderColor='#cc5555'; b.style.background='rgba(204,85,85,.12)'; b.style.animation='ayShake .35s ease'; if(cb){ cb.style.borderColor='#50bb80'; cb.style.background='rgba(80,187,128,.14)'; } }
+      btns.forEach(function(x){ if(x!==b&&x!==cb){ x.style.opacity='.4'; } x.style.pointerEvents='none'; });
+      i++; setTimeout(ask, 850);
+    }; });
+  }
+  ask();
+};
+
+App.prototype.reviseTyping = function(){
+  var self=this;
+  var pool=this.learnedPool();
+  var qs=shuffle(pool).slice(0, Math.min(8,pool.length));
+  this.reviseChrome('Typing Exercise');
+  var i=0, correct=0;
+  function ask(){
+    if (i>=qs.length) return self.reviseResults('Typing Exercise', correct, qs.length, self.reviseTyping.bind(self));
+    var f=self.q('#rvFill'); if(f) f.style.width=(i/qs.length*100)+'%';
+    var cc=self.q('#rvCount'); if(cc) cc.textContent=i+'/'+qs.length;
+    var w=qs[i];
+    var s=self.q('#rvStage'); if(!s) return;
+    s.innerHTML='<div class="ay-fade" style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;">'
+      +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:10px;">Type the meaning</div>'
+      +'<div style="font-family:\'Scheherazade New\',serif;font-size:'+self.arabicPx(62)+'px;color:#eccb73;direction:rtl;font-weight:700;line-height:1.4;">'+w.a+'</div>'
+      +(self.data.settings.translit?'<div style="font-size:16px;font-style:italic;color:#dbb964;margin-top:6px;">'+w.t+'</div>':'')
+      +'<input id="rvInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="type the English meaning" style="width:100%;margin-top:22px;background:#0f1932;border:1.5px solid rgba(216,180,92,.3);border-radius:14px;padding:15px 16px;color:#f3e9cf;font-family:Poppins;font-size:16px;text-align:center;outline:none;">'
+      +'<div id="rvFb" style="min-height:24px;margin-top:12px;font-family:Poppins;font-size:13px;text-align:center;"></div>'
+      +'<button class="ay-cta" id="rvSubmit" style="margin-top:8px;max-width:300px;"><span style="position:relative;z-index:2;">Check</span><span class="sh"></span></button>'
+      +'</div>';
+    s.scrollTop=0;
+    var inp=self.q('#rvInput'), fb=self.q('#rvFb'), btn=self.q('#rvSubmit'); var done=false;
+    setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 60);
+    function submit(){
+      if (done){ i++; return ask(); }
+      done=true;
+      var ok=self.matchMeaning(inp.value, w.e);
+      inp.style.borderColor=ok?'#50bb80':'#cc5555'; inp.disabled=true;
+      if (ok){ correct++; fb.style.color='#78d9a0'; fb.textContent='Correct'; }
+      else { fb.style.color='#cc8a8a'; fb.innerHTML='Answer: <span style="color:#f3e9cf;">'+esc(w.e)+'</span>'; }
+      btn.querySelector('span').textContent = (i+1>=qs.length?'See results':'Next word');
+    }
+    btn.onclick=submit;
+    inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); submit(); } });
+  }
+  ask();
+};
+
+App.prototype.reviseTimed = function(){
+  var self=this;
+  var pool=this.learnedPool();
+  this.reviseChrome('Timed Challenge');
+  var DURATION=30, left=DURATION, correct=0, attempts=0, running=true;
+  var deck=shuffle(pool.slice()), di=0;
+  if (self._rvTimer){ clearInterval(self._rvTimer); }
+  function finish(){
+    running=false;
+    var s=self.q('#rvStage'); if(!s) return;
+    var label=self.q('#rvLabel'); if(label) label.textContent='Time up';
+    var cc=self.q('#rvCount'); if(cc) cc.textContent='';
+    s.innerHTML='<div class="ay-fade" style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:24px;">'
+      +'<div style="font-family:\'Scheherazade New\',serif;font-size:44px;color:#eccb73;text-shadow:0 0 20px rgba(231,194,108,.5);">آية</div>'
+      +'<div style="margin-top:14px;font-size:22px;font-weight:600;color:#fbeeb8;">Time up!</div>'
+      +'<div style="margin-top:18px;font-size:64px;font-weight:700;color:#78d9a0;font-family:Poppins;line-height:1;">'+correct+'</div>'
+      +'<div style="font-family:Poppins;font-size:13px;color:rgba(243,233,207,.6);margin-top:6px;">correct in 30 seconds'+(attempts?' &middot; '+Math.round(correct/attempts*100)+'% accuracy':'')+'</div>'
+      +'<button class="ay-cta" id="rvAgain" style="margin-top:26px;max-width:300px;"><span style="position:relative;z-index:2;">Play again &rarr;</span><span class="sh"></span></button>'
+      +'<button class="ay-ghost" id="rvBack" style="margin-top:11px;max-width:300px;">Back to revision</button>'
+      +'</div>';
+    self.q('#rvAgain').onclick=function(){ self.reviseTimed(); };
+    self.q('#rvBack').onclick=function(){ self.reviseActive=false; self.go('revise'); };
+  }
+  function tick(){
+    left--;
+    var cc=self.q('#rvCount'); if(cc){ cc.textContent=left+'s'; cc.style.color=left<=5?'#cc8a8a':'rgba(243,233,207,.75)'; }
+    var f=self.q('#rvFill'); if(f) f.style.width=(left/DURATION*100)+'%';
+    if (left<=0){ clearInterval(self._rvTimer); self._rvTimer=null; finish(); }
+  }
+  function next(){
+    if (!running) return;
+    if (di>=deck.length){ deck=shuffle(pool.slice()); di=0; }
+    var w=deck[di++]; var opts=self.engOptions(w,3);
+    var s=self.q('#rvStage'); if(!s) return;
+    s.innerHTML='<div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;">'
+      +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:8px;">Quick! Choose the meaning</div>'
+      +'<div style="font-family:\'Scheherazade New\',serif;font-size:'+self.arabicPx(56)+'px;color:#eccb73;direction:rtl;font-weight:700;line-height:1.3;">'+w.a+'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:9px;width:100%;margin-top:14px;">'
+      +opts.map(function(o){ return '<button class="rvopt" data-en="'+esc(o)+'" style="width:100%;font-family:Poppins;background:#0f1932;border:1.5px solid rgba(216,180,92,.18);color:#f3e9cf;border-radius:13px;padding:13px 16px;cursor:pointer;font-size:15px;font-weight:500;text-align:center;">'+esc(o)+'</button>'; }).join('')
+      +'</div>'
+      +'<div style="margin-top:14px;font-family:Poppins;font-size:12px;color:rgba(243,233,207,.5);">Score '+correct+'</div>'
+      +'</div>';
+    s.scrollTop=0;
+    var btns=$all('.rvopt', s), answered=false;
+    btns.forEach(function(b){ b.onclick=function(){ if(answered||!running) return; answered=true; attempts++;
+      if (b.dataset.en===w.e){ b.style.borderColor='#50bb80'; b.style.background='rgba(80,187,128,.14)'; correct++; }
+      else { b.style.borderColor='#cc5555'; b.style.background='rgba(204,85,85,.12)'; var cb=btns.filter(function(x){return x.dataset.en===w.e;})[0]; if(cb){ cb.style.borderColor='#50bb80'; cb.style.background='rgba(80,187,128,.14)'; } }
+      setTimeout(next, 240);
+    }; });
+  }
+  var cc=self.q('#rvCount'); if(cc) cc.textContent=left+'s';
+  self._rvTimer=setInterval(tick,1000);
+  next();
+};
+
+
+// ============ ENGAGEMENT FEATURES (DEMO) ============
+App.prototype.lessonLevelOf = function(idx){ var lv=this.data.lessonLevel||{}; return lv[idx]||0; };
+App.prototype.stagesForLevel = function(lvl){
+  if (lvl>=2) return ['listen','pickEn','type'];
+  if (lvl===1) return ['recall','listen','pickEn'];
+  return ['introduce','recall','pickAr','pickEn'];
+};
+
+// ---- in-lesson combo counter ----
+App.prototype.comboHit = function(ok){
+  if (ok){ this.combo=(this.combo||0)+1; if (this.combo>(this.bestCombo||0)) this.bestCombo=this.combo; }
+  else this.combo=0;
+  this.renderCombo();
+};
+App.prototype.renderCombo = function(){
+  var el=this.q('#lnCombo'); if(!el) return;
+  if ((this.combo||0)>=2){ el.style.opacity='1'; el.textContent='🔥 '+this.combo+' in a row'; }
+  else el.style.opacity='0';
+};
+
+// ---- tip card shown before a lesson begins ----
+App.prototype.lessonTip = function(){
+  var roots={}, best=null;
+  this.lwords.forEach(function(w){ if(w.rt){ (roots[w.rt]=roots[w.rt]||[]).push(w); } });
+  for (var r in roots){ if (roots[r].length>1 && (!best || roots[r].length>roots[best].length)) best=r; }
+  return best ? {root:best, words:roots[best]} : null;
+};
+App.prototype.runLessonIntro = function(){
+  var self=this; var lvl=this.lessonLevelOf(this.lesson.idx); var tip=this.lessonTip();
+  var body;
+  if (tip){
+    body='<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#dbb964;">A pattern to notice</div>'
+      +'<div style="font-family:\'Scheherazade New\',serif;font-size:46px;color:#eccb73;direction:rtl;letter-spacing:10px;margin:10px 0;text-shadow:0 0 24px rgba(231,194,108,.4);">'+tip.root+'</div>'
+      +'<div style="font-family:Poppins;font-size:13px;color:rgba(243,233,207,.7);line-height:1.6;max-width:280px;">'+tip.words.length+' words in this lesson grow from this root. Notice how their meanings stay related.</div>'
+      +'<div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:300px;margin-top:14px;">'
+      +tip.words.map(function(x){ return '<div style="display:flex;justify-content:space-between;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(216,180,92,.18);border-radius:12px;padding:8px 12px;"><span style="font-family:\'Scheherazade New\',serif;font-size:24px;color:#eccb73;">'+x.a+'</span><span style="font-family:Poppins;font-size:13px;color:#f3e9cf;align-self:center;">'+esc(x.e)+'</span></div>'; }).join('')
+      +'</div>';
+  } else {
+    body='<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#dbb964;">This lesson</div>'
+      +'<div style="font-size:22px;font-weight:600;color:#f3e9cf;margin-top:8px;">'+this.lwords.length+' new words</div>'
+      +'<div style="font-family:Poppins;font-size:13px;color:rgba(243,233,207,.6);line-height:1.6;max-width:280px;margin-top:8px;">Take them one at a time. Each word is celebrated, and anything you miss comes back before the lesson ends.</div>';
+  }
+  var lvlBadge = lvl>0 ? '<div style="font-family:Poppins;font-size:11px;color:#9be3b8;margin-top:14px;background:rgba(120,217,160,.08);border:1px solid rgba(120,217,160,.25);border-radius:999px;padding:6px 14px;">Strengthen level '+(lvl+1)+' &middot; fewer hints, more recall</div>' : '';
+  this.paint('<div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:20px;">'
+    +body+lvlBadge
+    +'<button class="ay-cta" id="tipNext" style="margin-top:22px;max-width:300px;"><span style="position:relative;z-index:2;">Start &rarr;</span><span class="sh"></span></button>'
+  +'</div>', 'Before you begin');
+  this.q('#tipNext').onclick=function(){ self.lphase='learn'; self.next(); };
+};
+
+// ---- listen and choose (audio first) ----
+App.prototype.scListen = function(w,rb){
+  rb=rb||''; var self=this;
+  var opts=shuffle([w].concat(this.distractors('e',w,2)));
+  this.paint('<div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;">'+rb
+    +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:16px;">Listen, then choose the meaning</div>'
+    +'<button id="bigSpk" style="width:84px;height:84px;border-radius:50%;border:1px solid rgba(216,180,92,.4);background:rgba(216,180,92,.1);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#eccb73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg></button>'
+    +'<div style="font-family:Poppins;font-size:11px;color:rgba(243,233,207,.4);margin-top:8px;">Tap to replay</div>'
+    +'<div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:18px;">'
+    +opts.map(function(o){ return '<button class="opt" data-en="'+esc(o.e)+'" style="width:100%;font-family:Poppins;background:#0f1932;border:1.5px solid rgba(216,180,92,.18);color:#f3e9cf;border-radius:14px;padding:15px 16px;cursor:pointer;font-size:16px;font-weight:500;text-align:center;transition:transform .12s,border-color .2s,background .2s;">'+esc(o.e)+'</button>'; }).join('')
+    +'</div></div>', 'Listening');
+  var play=function(){ self.bestVerse(w).then(function(r){ if(r && r.verse.words[r.idx] && r.verse.words[r.idx].audio) self.playUrl(r.verse.words[r.idx].audio); }); };
+  var bs=this.q('#bigSpk'); if(bs) bs.onclick=play;
+  if (this.data.settings.audio) this.bestVerse(w).then(function(){ if(self.screen==='learn') play(); });
+  this.wireChoice(w.e,'en',this.lwords.indexOf(w));
+};
+
+// ---- type the meaning ----
+App.prototype.scType = function(w,rb){
+  rb=rb||''; var self=this; var wi=this.lwords.indexOf(w);
+  this.paint('<div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;">'+rb
+    +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:10px;">Type the meaning from memory</div>'
+    +'<div style="font-family:\'Scheherazade New\',serif;font-size:'+this.arabicPx(60)+'px;color:#eccb73;direction:rtl;font-weight:700;line-height:1.4;">'+w.a+'</div>'
+    +'<input id="tyInput" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="english meaning" style="width:100%;margin-top:20px;background:#0f1932;border:1.5px solid rgba(216,180,92,.3);border-radius:14px;padding:15px 16px;color:#f3e9cf;font-family:Poppins;font-size:16px;text-align:center;outline:none;">'
+    +'<div id="tyFb" style="min-height:22px;margin-top:10px;font-family:Poppins;font-size:13px;text-align:center;"></div>'
+    +'<button class="ay-cta" id="tyGo" style="margin-top:6px;max-width:300px;"><span style="position:relative;z-index:2;">Check</span><span class="sh"></span></button>'
+  +'</div>', 'Typing');
+  var inp=this.q('#tyInput'), fb=this.q('#tyFb'), go=this.q('#tyGo'); var done=false;
+  setTimeout(function(){ try{ inp.focus(); }catch(e){} },50);
+  function submit(){
+    if(done) return; done=true;
+    var ok=self.matchMeaning(inp.value, w.e);
+    inp.disabled=true; inp.style.borderColor=ok?'#50bb80':'#cc5555';
+    if(ok){ fb.style.color='#78d9a0'; fb.textContent='Correct'; self.comboHit(true); setTimeout(function(){ self.afterCorrect(wi); },650); }
+    else { fb.style.color='#cc8a8a'; fb.innerHTML='Answer: <span style="color:#f3e9cf;">'+esc(w.e)+'</span>'; self.comboHit(false); self.lessonMissed[wi]=true; self.scheduleRetry(wi); setTimeout(function(){ self.next(); },1500); }
+  }
+  go.onclick=submit; inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); submit(); } });
+};
+
+// ---- tap the pairs ----
+App.prototype.runPairs = function(){
+  if(this.screen!=='learn') return; var self=this;
+  var ws=this.lwords.slice(0, Math.min(5,this.lwords.length));
+  if (ws.length<2){ this.lphase='ayah'; return this.next(); }
+  var L=shuffle(ws.slice()), R=shuffle(ws.slice());
+  var sel={ar:null,en:null}, matched={}, remaining=ws.length;
+  function tile(side,wd){ return '<button class="ptile" data-side="'+side+'" data-r="'+wd.r+'" style="width:100%;text-align:center;background:#0f1932;border:1.5px solid rgba(216,180,92,.2);border-radius:12px;padding:12px 8px;cursor:pointer;transition:all .15s;">'+(side==='ar'?'<span style="font-family:\'Scheherazade New\',serif;font-size:'+self.arabicPx(26)+'px;color:#eccb73;direction:rtl;">'+wd.a+'</span>':'<span style="font-family:Poppins;font-size:13px;color:#f3e9cf;">'+esc(wd.e)+'</span>')+'</button>'; }
+  this.paint('<div style="width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;">'
+    +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:6px;">Match the pairs</div>'
+    +'<div style="font-family:Poppins;font-size:11px;color:rgba(243,233,207,.4);margin-bottom:14px;">Tap a word, then its meaning</div>'
+    +'<div style="display:flex;gap:10px;width:100%;">'
+      +'<div style="flex:1;display:flex;flex-direction:column;gap:8px;">'+L.map(function(wd){return tile('ar',wd);}).join('')+'</div>'
+      +'<div style="flex:1;display:flex;flex-direction:column;gap:8px;">'+R.map(function(wd){return tile('en',wd);}).join('')+'</div>'
+    +'</div></div>', 'Tap the pairs');
+  var btns=$all('.ptile', this.view);
+  function clearSel(){ btns.forEach(function(b){ if(!matched[b.dataset.r]){ b.style.borderColor='rgba(216,180,92,.2)'; b.style.background='#0f1932'; } }); }
+  btns.forEach(function(b){ b.onclick=function(){
+    var r=b.dataset.r, side=b.dataset.side; if(matched[r]) return;
+    b.style.borderColor='#eccb73'; b.style.background='rgba(216,180,92,.12)';
+    sel[side]=r;
+    if(sel.ar && sel.en){
+      if(sel.ar===sel.en){
+        matched[sel.ar]=true; remaining--; self.comboHit(true);
+        var mk=sel.ar; btns.forEach(function(x){ if(x.dataset.r===mk){ x.style.borderColor='#50bb80'; x.style.background='rgba(80,187,128,.16)'; x.style.opacity='.55'; x.style.pointerEvents='none'; } });
+        sel={ar:null,en:null};
+        if(remaining===0){ setTimeout(function(){ self.lphase='ayah'; self.next(); }, 520); }
+      } else {
+        self.comboHit(false); var a=sel.ar,e=sel.en;
+        btns.forEach(function(x){ if((x.dataset.r===a&&x.dataset.side==='ar')||(x.dataset.r===e&&x.dataset.side==='en')){ x.style.borderColor='#cc5555'; x.style.background='rgba(204,85,85,.12)'; } });
+        sel={ar:null,en:null}; setTimeout(clearSel, 520);
+      }
+    }
+  }; });
+};
+
+// ---- build the sentence ----
+App.prototype.runBuild = function(){
+  if(this.screen!=='learn') return; var self=this;
+  var chosen=this.lwords[this.lwords.length-1]||this.lwords[0];
+  this.bestVerse(chosen).then(function(r){
+    if(self.screen!=='learn') return;
+    if(!r || self.verseLen(r.verse)<3 || self.verseLen(r.verse)>8){ self.lphase='fill'; return self.buildFills().then(function(){ self.next(); }); }
+    var verse=r.verse; var order=verse.words.map(function(vw,i){ return i; });
+    var tiles=shuffle(order.slice()); var placed=[];
+    function render(){
+      var answer = placed.length ? placed.map(function(i){ return '<span style="font-family:\'Scheherazade New\',serif;font-size:'+self.arabicPx(26)+'px;color:#eccb73;">'+verse.words[i].ar+'</span>'; }).join(' ') : '<span style="color:rgba(243,233,207,.35);font-family:Poppins;font-size:13px;">tap the words in order</span>';
+      var bank = tiles.filter(function(i){ return placed.indexOf(i)<0; }).map(function(i){ return '<button class="btile" data-i="'+i+'" style="background:#0f1932;border:1.5px solid rgba(216,180,92,.2);border-radius:10px;padding:8px 12px;cursor:pointer;font-family:\'Scheherazade New\',serif;font-size:'+self.arabicPx(24)+'px;color:#eccb73;direction:rtl;">'+verse.words[i].ar+'</button>'; }).join('');
+      self.paint('<div style="width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;">'
+        +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:10px;">Build the verse from its words</div>'
+        +'<div style="font-family:Poppins;font-size:13px;color:rgba(243,233,207,.75);font-style:italic;text-align:center;line-height:1.5;margin-bottom:14px;">'+esc(verse.tr||'')+'</div>'
+        +'<div id="answerRow" style="min-height:54px;width:100%;border:1px dashed rgba(216,180,92,.3);border-radius:14px;padding:12px;direction:rtl;text-align:center;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;">'+answer+'</div>'
+        +'<div id="bank" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;">'+bank+'</div>'
+        +'<div id="bldFb" style="min-height:22px;margin-top:10px;font-family:Poppins;font-size:13px;text-align:center;"></div>'
+        +'<div style="display:flex;gap:10px;margin-top:6px;width:100%;max-width:300px;">'
+          +'<button class="ay-ghost" id="bldReset" style="flex:1;">Reset</button>'
+          +'<button class="ay-cta" id="bldCheck" style="flex:1;"><span style="position:relative;z-index:2;">Check</span><span class="sh"></span></button>'
+        +'</div></div>', 'Build the sentence');
+      $all('.btile', self.view).forEach(function(b){ b.onclick=function(){ placed.push(+b.dataset.i); render(); }; });
+      var rs=self.q('#bldReset'); if(rs) rs.onclick=function(){ placed=[]; render(); };
+      var ck=self.q('#bldCheck'); if(ck) ck.onclick=function(){
+        var fb=self.q('#bldFb');
+        var ok = placed.length===order.length && placed.every(function(v,i){ return v===order[i]; });
+        if(ok){ fb.style.color='#78d9a0'; fb.textContent='Correct order'; self.comboHit(true); setTimeout(function(){ self.lphase='fill'; self.buildFills().then(function(){ self.next(); }); }, 800); }
+        else { fb.style.color='#cc8a8a'; fb.textContent='Not quite. Tap Reset and try again.'; self.comboHit(false); }
+      };
+    }
+    render();
+  });
+};
+
+// ---- session summary with a goal nudge ----
+App.prototype.runSummary = function(){
+  if(this.screen!=='learn') return; var self=this;
+  var learned=this.learned, best=this.bestCombo||0;
+  var remainLessons=0; lessonsInBand(this.lesson.band).forEach(function(l){ if(!self.data.lessonsDone[l.idx] && l.idx!==self.lesson.idx) remainLessons++; });
+  var goalLeft=Math.max(0, this.data.dailyGoal-(this.data.todayDate===todayStr()?this.data.todayCount:0));
+  var nudge;
+  if (goalLeft>0) nudge=goalLeft+' more word'+(goalLeft===1?'':'s')+' to reach today’s goal.';
+  else if (remainLessons>0) nudge='Finish '+remainLessons+' more lesson'+(remainLessons===1?'':'s')+' to complete this milestone.';
+  else nudge='You have completed this milestone. Beautiful work.';
+  this.paint('<div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:14px;">'
+    +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9be3b8;">Lesson summary</div>'
+    +'<div style="display:flex;gap:9px;width:100%;margin-top:16px;">'
+      +[[learned,'learned'],[best,'best streak'],['+'+(learned*XP_PER_WORD+XP_PER_LESSON),'XP']].map(function(s){ return '<div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(216,180,92,.2);border-radius:12px;padding:12px 6px;"><div style="font-family:Poppins;font-weight:700;font-size:22px;color:#78d9a0;">'+s[0]+'</div><div style="font-family:Poppins;font-size:9.5px;color:rgba(243,233,207,.5);margin-top:2px;">'+s[1]+'</div></div>'; }).join('')
+    +'</div>'
+    +'<div style="margin-top:18px;background:rgba(216,180,92,.08);border:1px solid rgba(216,180,92,.25);border-radius:14px;padding:14px 16px;font-family:Poppins;font-size:13px;color:#fbeeb8;line-height:1.5;">'+nudge+'</div>'
+    +'<button class="ay-cta" id="sumNext" style="margin-top:22px;max-width:300px;"><span style="position:relative;z-index:2;">Continue &rarr;</span><span class="sh"></span></button>'
+  +'</div>', 'Summary');
+  this.q('#sumNext').onclick=function(){ self.celebrate(); };
+};
+
+// ---- practice (spaced, weak and due words) ----
+App.prototype.dueForPractice = function(){
+  var self=this, d=this.data.simDay||0;
+  return this.learnedPool().filter(function(w){ var m=self.data.mastered[w.r]; return !m || m.pdue==null || m.pdue<=d; });
+};
+App.prototype.practiceCard = function(){
+  var due=this.dueForPractice().length, day=this.data.simDay||0;
+  var crowns=0, lv=this.data.lessonLevel||{}; for(var k in lv) crowns+=lv[k];
+  var inner = due>0
+    ? '<div style="font-family:Poppins;font-size:13px;color:#fbeeb8;margin-top:4px;">'+due+' word'+(due===1?'':'s')+' ready to strengthen</div><button class="ay-cta" id="prStart" style="margin-top:10px;"><span style="position:relative;z-index:2;">Practice now &rarr;</span><span class="sh"></span></button>'
+    : '<div style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.6);margin-top:4px;line-height:1.5;">All caught up. Words return for practice after a short rest.</div>';
+  return '<div style="margin-top:14px;border-radius:18px;border:1px solid rgba(120,217,160,.3);background:rgba(120,217,160,.05);padding:16px 18px;">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:Poppins;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#9be3b8;">Practice</span><span style="font-family:Poppins;font-size:10.5px;color:rgba(243,233,207,.5);">&#128081; '+crowns+' crowns &middot; day '+day+'</span></div>'
+    +inner
+    +'<div style="display:flex;gap:8px;margin-top:10px;"><button class="ay-ghost" id="prStrong" style="flex:1;">Strengthen a lesson</button><button class="ay-ghost" id="prSim" style="flex:1;">Simulate next day</button></div>'
+  +'</div>';
+};
+App.prototype.strengthenLesson = function(){
+  for (var i=0;i<LESSONS.length;i++){ if(this.data.lessonsDone[LESSONS[i].idx]){ return this.go('learn',{lesson:LESSONS[i]}); } }
+  this.go('home');
+};
+App.prototype.startPractice = function(){
+  var self=this; var pool=this.dueForPractice(); if(!pool.length) pool=this.learnedPool();
+  var qs=shuffle(pool).slice(0, Math.min(10,pool.length));
+  this.reviseActive=true; this.nav.style.display='none';
+  this.reviseChrome('Practice');
+  var i=0, correct=0;
+  function fin(){
+    var d=self.data.simDay||0; qs.forEach(function(w){ var m=self.data.mastered[w.r]; if(m) m.pdue=d+2; }); self.save();
+    var s=self.q('#rvStage'); if(!s) return; var pct=qs.length?Math.round(correct/qs.length*100):0;
+    s.innerHTML='<div class="ay-fade" style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:24px;">'
+      +'<div style="font-family:\'Scheherazade New\',serif;font-size:42px;color:#eccb73;">آية</div>'
+      +'<div style="margin-top:12px;font-size:48px;font-weight:700;color:#78d9a0;font-family:Poppins;">'+correct+'<span style="font-size:22px;color:rgba(243,233,207,.5);">/'+qs.length+'</span></div>'
+      +'<div style="margin-top:8px;font-size:18px;font-weight:600;color:#fbeeb8;">'+(pct>=80?'Strong recall':'Good practice')+'</div>'
+      +'<div style="font-family:Poppins;font-size:12px;color:rgba(243,233,207,.55);margin-top:8px;">These words return for practice in 2 days.</div>'
+      +'<button class="ay-cta" id="prDone" style="margin-top:22px;max-width:300px;"><span style="position:relative;z-index:2;">Done</span><span class="sh"></span></button>'
+    +'</div>';
+    self.q('#prDone').onclick=function(){ self.reviseActive=false; self.go('home'); };
+  }
+  function ask(){
+    if(i>=qs.length) return fin();
+    var f=self.q('#rvFill'); if(f) f.style.width=(i/qs.length*100)+'%';
+    var c=self.q('#rvCount'); if(c) c.textContent=(i+1)+'/'+qs.length;
+    var w=qs[i]; var opts=self.engOptions(w,3);
+    var s=self.q('#rvStage'); if(!s) return;
+    s.innerHTML='<div class="ay-fade" style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;">'
+      +'<div style="font-family:Poppins;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,207,.45);margin-bottom:10px;">What does this mean?</div>'
+      +'<div style="font-family:\'Scheherazade New\',serif;font-size:'+self.arabicPx(58)+'px;color:#eccb73;direction:rtl;font-weight:700;">'+w.a+'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:18px;">'
+      +opts.map(function(o){ return '<button class="rvopt" data-en="'+esc(o)+'" style="width:100%;font-family:Poppins;background:#0f1932;border:1.5px solid rgba(216,180,92,.18);color:#f3e9cf;border-radius:14px;padding:15px 16px;cursor:pointer;font-size:16px;font-weight:500;text-align:center;">'+esc(o)+'</button>'; }).join('')
+      +'</div></div>';
+    var btns=$all('.rvopt',s), answered=false;
+    btns.forEach(function(b){ b.onclick=function(){ if(answered)return; answered=true;
+      var cb=btns.filter(function(x){return x.dataset.en===w.e;})[0];
+      if(b.dataset.en===w.e){ b.style.borderColor='#50bb80'; b.style.background='rgba(80,187,128,.14)'; correct++; }
+      else { b.style.borderColor='#cc5555'; b.style.background='rgba(204,85,85,.12)'; if(cb){cb.style.borderColor='#50bb80';cb.style.background='rgba(80,187,128,.14)';} }
+      btns.forEach(function(x){ if(x!==b&&x!==cb) x.style.opacity='.4'; x.style.pointerEvents='none'; });
+      i++; setTimeout(ask, 700);
+    }; });
+  }
+  ask();
+};
+
+// boot
+if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ window._ayah = new App(); });
+else window._ayah = new App();
+})();
+</script>
+</body>
+</html>
